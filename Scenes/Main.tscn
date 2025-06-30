@@ -3,19 +3,23 @@
 [ext_resource type="Texture2D" uid="uid://cpkasejx0m1t" path="res://Images/References/keypresso.PNG" id="1_r150o"]
 [ext_resource type="LabelSettings" uid="uid://duxx0llfqminq" path="res://LabelSettings/goal.tres" id="2_idj7w"]
 [ext_resource type="Script" uid="uid://wcffn5nhpmis" path="res://Scripts/Main.gd" id="3_pbw6q"]
-[ext_resource type="LabelSettings" uid="uid://ddupc3o2g4ctu" path="res://LabelSettings/correct.tres" id="3_rgh2o"]
-[ext_resource type="LabelSettings" uid="uid://dct5qndypr4ug" path="res://LabelSettings/wrong.tres" id="4_pbw6q"]
-[ext_resource type="PackedScene" uid="uid://bw5ns0s8hkud1" path="res://Scenes/letter.tscn" id="4_rgh2o"]
+[ext_resource type="PackedScene" uid="uid://k6cxviygeavr" path="res://Scenes/ScreenMain.tscn" id="4_v1gob"]
+[ext_resource type="PackedScene" uid="uid://bm8hnxvmc83kd" path="res://Scenes/ScreenTyping.tscn" id="5_jw32o"]
+[ext_resource type="PackedScene" uid="uid://b6ey1d4f1qdqm" path="res://Scenes/ScreenResult.tscn" id="6_50glp"]
 
-[node name="Control" type="Control"]
+[node name="SceneRoot" type="Control" node_paths=PackedStringArray("screen_main", "screen_typing", "screen_result")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("3_pbw6q")
+screen_main = NodePath("ScreenMain")
+screen_typing = NodePath("ScreenTyping")
+screen_result = NodePath("ScreenResult")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -24,7 +28,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="ReferenceScreen" type="TextureRect" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -36,7 +40,7 @@ texture = ExtResource("1_r150o")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="."]
+[node name="ReferenceLabel" type="Label" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 5
@@ -51,18 +55,11 @@ text = "rifle visual furl quality plus else cultural complex role directly cell 
 label_settings = ExtResource("2_idj7w")
 autowrap_mode = 2
 
-[node name="Letters" type="Control" parent="."]
-anchors_preset = 0
-offset_left = 223.0
-offset_top = 151.0
-offset_right = 263.0
-offset_bottom = 191.0
-script = ExtResource("3_pbw6q")
-goal_text = "rifle visual furl quality plus else cultural complex role directly cell athlete handful yell small terrible blue scandal telephone newly"
-letter_scene = ExtResource("4_rgh2o")
-letter_size = Vector2i(18, 34)
-line_separation = 5
-line_max_characters = 45
-letter_settigs_goal = ExtResource("2_idj7w")
-letter_settigs_correct = ExtResource("3_rgh2o")
-letter_settigs_wrong = ExtResource("4_pbw6q")
+[node name="ScreenMain" parent="." instance=ExtResource("4_v1gob")]
+layout_mode = 1
+
+[node name="ScreenTyping" parent="." instance=ExtResource("5_jw32o")]
+layout_mode = 1
+
+[node name="ScreenResult" parent="." instance=ExtResource("6_50glp")]
+layout_mode = 1

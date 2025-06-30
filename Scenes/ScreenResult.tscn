@@ -1,0 +1,169 @@
+[gd_scene load_steps=6 format=3 uid="uid://b6ey1d4f1qdqm"]
+
+[ext_resource type="Script" uid="uid://d1s2yg820ksd4" path="res://Scripts/ScreenResult.gd" id="1_1qyfw"]
+[ext_resource type="Texture2D" uid="uid://bt1o6kyv5g7gk" path="res://Images/References/monkeytype_result.PNG" id="2_0kraa"]
+[ext_resource type="FontFile" uid="uid://3rpi67lc1mec" path="res://Fonts/Anonymous_Pro/AnonymousPro-Regular.ttf" id="3_d1t63"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_dtese"]
+font = ExtResource("3_d1t63")
+font_size = 29
+
+[sub_resource type="LabelSettings" id="LabelSettings_d1t63"]
+font = ExtResource("3_d1t63")
+font_size = 59
+font_color = Color(0.8862745, 0.7176471, 0.078431375, 1)
+
+[node name="ScreenResult" type="Control" node_paths=PackedStringArray("label_wpm", "label_cpm", "label_accuracy", "label_time")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1qyfw")
+label_wpm = NodePath("label_wpm_value")
+label_cpm = NodePath("label_cpm_value")
+label_accuracy = NodePath("label_acc_value")
+label_time = NodePath("label_time_value")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 50.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_0kraa")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="label_cpm" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -535.0
+offset_top = -260.0
+offset_right = -335.0
+offset_bottom = -229.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "cpm"
+label_settings = SubResource("LabelSettings_dtese")
+
+[node name="label_cpm_value" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -534.0
+offset_top = -236.0
+offset_right = -334.0
+offset_bottom = -174.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "300"
+label_settings = SubResource("LabelSettings_d1t63")
+
+[node name="label_wpm" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -535.0
+offset_top = -178.0
+offset_right = -335.0
+offset_bottom = -147.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "wpm"
+label_settings = SubResource("LabelSettings_dtese")
+
+[node name="label_wpm_value" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -534.0
+offset_top = -152.0
+offset_right = -334.0
+offset_bottom = -90.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "60"
+label_settings = SubResource("LabelSettings_d1t63")
+
+[node name="label_acc" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -535.0
+offset_top = -94.0
+offset_right = -335.0
+offset_bottom = -63.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "acc"
+label_settings = SubResource("LabelSettings_dtese")
+
+[node name="label_acc_value" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -532.0
+offset_top = -68.0
+offset_right = -332.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "97%"
+label_settings = SubResource("LabelSettings_d1t63")
+
+[node name="label_time" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -535.0
+offset_top = -10.0
+offset_right = -335.0
+offset_bottom = 21.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "time"
+label_settings = SubResource("LabelSettings_dtese")
+
+[node name="label_time_value" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -532.0
+offset_top = 16.0
+offset_right = -332.0
+offset_bottom = 76.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "21s"
+label_settings = SubResource("LabelSettings_d1t63")
