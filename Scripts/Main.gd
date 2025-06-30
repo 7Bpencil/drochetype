@@ -111,6 +111,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
         if event.is_released():
             is_shift_held = false
 
+    if event_keycode == KEY_BACKSPACE and event.is_pressed():
+        input_letter_index -= 1
+        var goal_char = goal_text[input_letter_index]
+        var letter = letters[input_letter_index]
+        letter.label_settings = letter_settigs_goal
+        letter.text = goal_char
+
     if event.is_pressed() and keys.has(event_keycode):
         var key = keys[event_keycode]
         var key_char = key[1] if is_shift_held else key[0]
