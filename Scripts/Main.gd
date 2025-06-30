@@ -7,9 +7,14 @@ class_name Main
 @export var letter_size: Vector2i
 @export var line_separation: int
 @export var line_max_characters: int
+@export var letter_settigs_goal: Resource
+@export var letter_settigs_correct: Resource
+@export var letter_settigs_wrong: Resource
 
 
 var letters: Array[Node] = []
+var is_shift_held: bool = false
+var input_letter_index: int = 0
 
 
 func _ready() -> void:
@@ -54,5 +59,68 @@ func calculate_letter_position(line_current_letter_index: int, line_index: int) 
     return Vector2i(horizontal_position, vertical_position)
 
 
-func _process(delta: float) -> void:
+var keys = {
+    # alphabet
+    KEY_A : ["a", "A"],
+    KEY_B : ["b", "B"],
+    KEY_C : ["c", "C"],
+    KEY_D : ["d", "D"],
+    KEY_E : ["e", "E"],
+    KEY_F : ["f", "F"],
+    KEY_G : ["g", "G"],
+    KEY_H : ["h", "H"],
+    KEY_I : ["i", "I"],
+    KEY_J : ["j", "J"],
+    KEY_K : ["k", "K"],
+    KEY_L : ["l", "L"],
+    KEY_M : ["m", "M"],
+    KEY_N : ["n", "N"],
+    KEY_O : ["o", "O"],
+    KEY_P : ["p", "P"],
+    KEY_Q : ["q", "Q"],
+    KEY_R : ["r", "R"],
+    KEY_S : ["s", "S"],
+    KEY_T : ["t", "T"],
+    KEY_U : ["u", "U"],
+    KEY_V : ["v", "V"],
+    KEY_W : ["w", "W"],
+    KEY_X : ["x", "X"],
+    KEY_Y : ["y", "Y"],
+    KEY_Z : ["z", "Z"],
+    # numbers
+    KEY_0 : ["0", ")"],
+    KEY_1 : ["1", "!"],
+    KEY_2 : ["2", "@"],
+    KEY_3 : ["3", "#"],
+    KEY_4 : ["4", "$"],
+    KEY_5 : ["5", "%"],
+    KEY_6 : ["6", "^"],
+    KEY_7 : ["7", "&"],
+    KEY_8 : ["8", "*"],
+    KEY_9 : ["9", "("],
+    # special
+    KEY_SPACE : [" ", " "],
+}
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+    var event_keycode = event.keycode
+    if event_keycode == KEY_SHIFT:
+        if event.is_pressed():
+            is_shift_held = true
+        if event.is_released():
+            is_shift_held = false
+
+    if event.is_pressed() and keys.has(event_keycode):
+        var key = keys[event_keycode]
+        var key_char = key[1] if is_shift_held else key[0]
+        if input_letter_index < letters.size():
+            var goal_char = goal_text[input_letter_index]
+            var letter = letters[input_letter_index]
+            letter.label_settings = letter_settigs_correct if key_char == goal_char else letter_settigs_wrong
+            letter.text = key_char
+            input_letter_index += 1
+
+
+func _process(_delta: float) -> void:
     pass
