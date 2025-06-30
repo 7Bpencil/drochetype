@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://bw5ns0s8hkud1"]
+
+[ext_resource type="LabelSettings" uid="uid://duxx0llfqminq" path="res://LabelSettings/goal.tres" id="1_ka838"]
+
+[node name="Letter" type="Label"]
+offset_right = 18.0
+offset_bottom = 34.0
+text = "r"
+label_settings = ExtResource("1_ka838")
+autowrap_trim_flags = 0
+justification_flags = 128

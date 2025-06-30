@@ -1,0 +1,9 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://duxx0llfqminq"]
+
+[ext_resource type="FontFile" uid="uid://3rpi67lc1mec" path="res://Fonts/Anonymous_Pro/AnonymousPro-Regular.ttf" id="1_2inyr"]
+
+[resource]
+line_spacing = 6.0
+font = ExtResource("1_2inyr")
+font_size = 33
+font_color = Color(0.76862746, 0.76862746, 0.76862746, 1)
