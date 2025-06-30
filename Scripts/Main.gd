@@ -118,15 +118,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
         letter.label_settings = letter_settigs_goal
         letter.text = goal_char
 
-    if event.is_pressed() and keys.has(event_keycode):
+    if event.is_pressed() and keys.has(event_keycode) and input_letter_index < letters.size():
         var key = keys[event_keycode]
         var key_char = key[1] if is_shift_held else key[0]
-        if input_letter_index < letters.size():
-            var goal_char = goal_text[input_letter_index]
-            var letter = letters[input_letter_index]
-            letter.label_settings = letter_settigs_correct if key_char == goal_char else letter_settigs_wrong
-            letter.text = key_char
-            input_letter_index += 1
+        var goal_char = goal_text[input_letter_index]
+        var letter = letters[input_letter_index]
+        letter.label_settings = letter_settigs_correct if key_char == goal_char else letter_settigs_wrong
+        letter.text = key_char
+        input_letter_index += 1
 
 
 func _process(_delta: float) -> void:
