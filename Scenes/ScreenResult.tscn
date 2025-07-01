@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://b6ey1d4f1qdqm"]
+[gd_scene load_steps=7 format=3 uid="uid://b6ey1d4f1qdqm"]
 
 [ext_resource type="Script" uid="uid://d1s2yg820ksd4" path="res://Scripts/ScreenResult.gd" id="1_1qyfw"]
 [ext_resource type="Texture2D" uid="uid://bt1o6kyv5g7gk" path="res://Images/References/monkeytype_result.PNG" id="2_0kraa"]
+[ext_resource type="PackedScene" uid="uid://bhyc5fy6gfeuh" path="res://Scenes/letter_times_node.tscn" id="2_d1t63"]
 [ext_resource type="FontFile" uid="uid://3rpi67lc1mec" path="res://Fonts/Anonymous_Pro/AnonymousPro-Regular.ttf" id="3_d1t63"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_dtese"]
@@ -13,7 +14,7 @@ font = ExtResource("3_d1t63")
 font_size = 59
 font_color = Color(0.8862745, 0.7176471, 0.078431375, 1)
 
-[node name="ScreenResult" type="Control" node_paths=PackedStringArray("label_wpm", "label_cpm", "label_accuracy", "label_time")]
+[node name="ScreenResult" type="Control" node_paths=PackedStringArray("label_wpm", "label_cpm", "label_accuracy", "label_time", "letter_time_graph_root")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,6 +26,8 @@ label_wpm = NodePath("label_wpm_value")
 label_cpm = NodePath("label_cpm_value")
 label_accuracy = NodePath("label_acc_value")
 label_time = NodePath("label_time_value")
+letter_time_graph_root = NodePath("letter_times_root")
+letter_time_graph_node = ExtResource("2_d1t63")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 visible = false
@@ -167,3 +170,19 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "21s"
 label_settings = SubResource("LabelSettings_d1t63")
+
+[node name="letter_times_root" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 300.0
+offset_top = 108.0
+offset_right = 1100.0
+offset_bottom = 308.0
+
+[node name="ColorRect" type="ColorRect" parent="letter_times_root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.111196846, 0.11119683, 0.11119683, 1)

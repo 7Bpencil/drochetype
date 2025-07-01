@@ -15,11 +15,14 @@ func _ready() -> void:
     screen_typing.show_typing_result.connect(_on_end)
 
 func _on_start():
+    var original_text: String = "rifle visual furl quality plus else cultural complex role directly cell athlete handful yell small terrible blue scandal telephone newly"
+    var words = original_text.split(" ")
+
     screen_main.visible = false
     screen_typing.visible = true
-    screen_typing.start_test()
+    screen_typing.start_test(words)
 
-func _on_end(test_duration_msec: int, goal_text_characters: int, mistakes_count: int):
+func _on_end(test_duration_msec: int, goal_text_characters: int, mistakes_count: int, letter_times: Array[int]):
     screen_typing.visible = false
     screen_result.visible = true
-    screen_result.show_result(test_duration_msec, goal_text_characters, mistakes_count)
+    screen_result.show_result(test_duration_msec, goal_text_characters, mistakes_count, letter_times)

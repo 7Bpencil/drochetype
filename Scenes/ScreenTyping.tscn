@@ -14,7 +14,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_iwai0")
-goal_text = "rifle visual furl quality plus else cultural complex role directly cell athlete handful yell small terrible blue scandal telephone newly"
 letters_root = NodePath("LettersRoot")
 letter_scene = ExtResource("2_kewo7")
 letter_size = Vector2i(18, 34)
