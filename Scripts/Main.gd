@@ -1,6 +1,4 @@
-extends Node
-
-class_name Main
+class_name Main extends Node
 
 @export_group("Screens")
 @export var screen_main: ScreenMain
@@ -22,7 +20,7 @@ func _on_start():
     screen_typing.visible = true
     screen_typing.start_test(words)
 
-func _on_end(test_duration_msec: int, goal_text_characters: int, mistakes_count: int, letter_times: Array[int]):
+func _on_end(result: TypingResult):
     screen_typing.visible = false
     screen_result.visible = true
-    screen_result.show_result(test_duration_msec, goal_text_characters, mistakes_count, letter_times)
+    screen_result.show_result(result)

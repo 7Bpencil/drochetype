@@ -116,11 +116,11 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -535.0
 offset_top = -94.0
-offset_right = -335.0
+offset_right = -35.0
 offset_bottom = -63.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "acc"
+text = "acc real/result"
 label_settings = SubResource("LabelSettings_dtese")
 
 [node name="label_acc_value" type="Label" parent="."]
@@ -132,11 +132,11 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -532.0
 offset_top = -68.0
-offset_right = -332.0
+offset_right = -32.0
 offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "97%"
+text = "97%/100%"
 label_settings = SubResource("LabelSettings_d1t63")
 
 [node name="label_time" type="Label" parent="."]
@@ -172,6 +172,7 @@ text = "21s"
 label_settings = SubResource("LabelSettings_d1t63")
 
 [node name="letter_times_root" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_left = 300.0
 offset_top = 108.0

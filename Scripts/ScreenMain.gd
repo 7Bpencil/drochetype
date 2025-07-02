@@ -1,6 +1,4 @@
-extends Node
-
-class_name ScreenMain
+class_name ScreenMain extends Node
 
 @export var start_button: Button
 

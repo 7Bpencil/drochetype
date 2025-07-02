@@ -1,6 +1,4 @@
-extends Node
-
-class_name ScreenTyping
+class_name ScreenTyping extends Node
 
 @export var letters_root: Control
 @export var letter_scene: PackedScene
@@ -11,25 +9,30 @@ class_name ScreenTyping
 @export var letter_settings_correct: Resource
 @export var letter_settings_wrong: Resource
 
-signal show_typing_result(test_duration_msec: int, goal_text_characters: int, mistakes_count: int, letter_times: Array[int])
+signal show_typing_result(result: TypingResult)
 
 var is_running: bool = false
 var letters: Array[Node] = []
+var goal_words: PackedStringArray
 var goal_letters: PackedStringArray = []
 var letter_times: Array[int] = []
+var letter_results: Array[bool] = []
 var previous_key_time: int = 0
 var is_shift_held: bool = false
 var input_letter_index: int = 0
-var mistakes_count: int = 0
+var real_keys_count: int = 0
+var real_mistakes_count: int = 0
 var start_test_time: int = 0
 var hit_first_letter: bool = false
 
 func start_test(words: PackedStringArray):
     var letters_count = get_letters_count(words)
 
+    goal_words = words
     goal_letters.resize(letters_count)
     letters.resize(letters_count)
     letter_times.resize(letters_count)
+    letter_results.resize(letters_count)
 
     var i: int = 0
     var current_line_start_letter_index: int = 0
@@ -149,22 +152,25 @@ func _unhandled_key_input(event: InputEvent) -> void:
         var key_char = key[1] if is_shift_held else key[0]
         var goal_char = goal_letters[input_letter_index]
         var letter = letters[input_letter_index]
+        var is_correct = key_char == goal_char
 
         letter_times[input_letter_index] = current_key_time - previous_key_time
+        letter_results[input_letter_index] = is_correct
 
-        if key_char != goal_char:
-            mistakes_count += 1
-        if event_keycode == KEY_SPACE and key_char != goal_char:
+        real_keys_count += 1
+        if not is_correct:
+            real_mistakes_count += 1
+        if event_keycode == KEY_SPACE and not is_correct:
             letter.label_settings = letter_settings_wrong
             letter.text = "_"
         else:
-            letter.label_settings = letter_settings_correct if key_char == goal_char else letter_settings_wrong
+            letter.label_settings = letter_settings_correct if is_correct else letter_settings_wrong
             letter.text = key_char
-        if input_letter_index == letters.size() - 1 and key_char == goal_char:
+        if input_letter_index == letters.size() - 1 and is_correct:
             var end_test_time = current_key_time
             var test_time = end_test_time - start_test_time
-            var characters_count = letters.size()
-            show_typing_result.emit(test_time, characters_count, mistakes_count, letter_times)
+            var result = TypingResult.new(goal_words, test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
+            show_typing_result.emit(result)
 
         input_letter_index += 1
         previous_key_time = current_key_time
