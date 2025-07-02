@@ -1,5 +1,6 @@
 class_name ScreenResult extends Node
 
+
 @export var label_wpm: Label
 @export var label_cpm: Label
 @export var label_accuracy_real: Label
@@ -7,6 +8,7 @@ class_name ScreenResult extends Node
 @export var label_time: Label
 @export var letter_time_graph_root: Control
 @export var letter_time_graph_node: PackedScene
+
 
 func show_result(result: TypingResult):
     var result_keys_count = result.letter_results.size()

@@ -1,11 +1,13 @@
 class_name TypingResult
 
+
 var goal_words: PackedStringArray
 var test_duration_msec: int
 var real_keys_count: int
 var real_mistakes_count: int
 var letter_times: Array[int]
 var letter_results: Array[bool]
+
 
 func _init(
     goal_words: PackedStringArray,
