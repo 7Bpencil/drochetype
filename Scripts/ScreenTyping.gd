@@ -170,6 +170,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
             var end_test_time = current_key_time
             var test_time = end_test_time - start_test_time
             var result = TypingResult.new(goal_words, test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
+            is_running = false
             show_typing_result.emit(result)
 
         input_letter_index += 1

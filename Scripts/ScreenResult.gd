@@ -2,7 +2,8 @@ class_name ScreenResult extends Node
 
 @export var label_wpm: Label
 @export var label_cpm: Label
-@export var label_accuracy: Label
+@export var label_accuracy_real: Label
+@export var label_accuracy_result: Label
 @export var label_time: Label
 @export var letter_time_graph_root: Control
 @export var letter_time_graph_node: PackedScene
@@ -20,7 +21,8 @@ func show_result(result: TypingResult):
 
     label_cpm.text = "%d" % real_cpm
     label_wpm.text = "%d" % real_wpm
-    label_accuracy.text = "%d%%/%d%%" % [real_accuracy, result_accuracy]
+    label_accuracy_real.text = "%d%%" % real_accuracy
+    label_accuracy_result.text = "%d%%" % result_accuracy
     label_time.text = "%ds" % test_duration_sec
 
 

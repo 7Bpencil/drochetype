@@ -1,11 +1,42 @@
-[gd_scene load_steps=7 format=3 uid="uid://0kcwtttcr5bt"]
+[gd_scene load_steps=19 format=3 uid="uid://0kcwtttcr5bt"]
 
 [ext_resource type="Texture2D" uid="uid://cpkasejx0m1t" path="res://Images/References/keypresso.PNG" id="1_r150o"]
 [ext_resource type="LabelSettings" uid="uid://duxx0llfqminq" path="res://LabelSettings/goal.tres" id="2_idj7w"]
 [ext_resource type="Script" uid="uid://wcffn5nhpmis" path="res://Scripts/Main.gd" id="3_pbw6q"]
-[ext_resource type="PackedScene" uid="uid://k6cxviygeavr" path="res://Scenes/ScreenMain.tscn" id="4_v1gob"]
-[ext_resource type="PackedScene" uid="uid://bm8hnxvmc83kd" path="res://Scenes/ScreenTyping.tscn" id="5_jw32o"]
-[ext_resource type="PackedScene" uid="uid://b6ey1d4f1qdqm" path="res://Scenes/ScreenResult.tscn" id="6_50glp"]
+[ext_resource type="Script" uid="uid://dangdinrwugo" path="res://Scripts/ScreenMain.gd" id="4_grg3l"]
+[ext_resource type="FontFile" uid="uid://3rpi67lc1mec" path="res://Fonts/Anonymous_Pro/AnonymousPro-Regular.ttf" id="5_frkhe"]
+[ext_resource type="Script" uid="uid://duvg4f7oa8sc" path="res://Scripts/ScreenTyping.gd" id="6_1p5hy"]
+[ext_resource type="PackedScene" uid="uid://bw5ns0s8hkud1" path="res://Scenes/letter.tscn" id="7_h1m7h"]
+[ext_resource type="LabelSettings" uid="uid://ddupc3o2g4ctu" path="res://LabelSettings/correct.tres" id="8_erwvk"]
+[ext_resource type="LabelSettings" uid="uid://dct5qndypr4ug" path="res://LabelSettings/wrong.tres" id="9_2w5on"]
+[ext_resource type="Script" uid="uid://d1s2yg820ksd4" path="res://Scripts/ScreenResult.gd" id="10_346fj"]
+[ext_resource type="PackedScene" uid="uid://bhyc5fy6gfeuh" path="res://Scenes/letter_times_node.tscn" id="11_0sclb"]
+[ext_resource type="Texture2D" uid="uid://bt1o6kyv5g7gk" path="res://Images/References/monkeytype_result.PNG" id="12_sxkr1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jw32o"]
+bg_color = Color(0, 0.41960785, 0.23137255, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_50glp"]
+bg_color = Color(0, 0.57, 0.3135001, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vy5pj"]
+bg_color = Color(1, 0.31713742, 0.44008437, 1)
+
+[sub_resource type="Theme" id="Theme_v1gob"]
+Button/font_sizes/font_size = 52
+Button/fonts/font = ExtResource("5_frkhe")
+Button/styles/hover = SubResource("StyleBoxFlat_jw32o")
+Button/styles/normal = SubResource("StyleBoxFlat_50glp")
+Button/styles/pressed = SubResource("StyleBoxFlat_vy5pj")
+
+[sub_resource type="LabelSettings" id="LabelSettings_dtese"]
+font = ExtResource("5_frkhe")
+font_size = 29
+
+[sub_resource type="LabelSettings" id="LabelSettings_d1t63"]
+font = ExtResource("5_frkhe")
+font_size = 59
+font_color = Color(0.8862745, 0.7176471, 0.078431375, 1)
 
 [node name="SceneRoot" type="Control" node_paths=PackedStringArray("screen_main", "screen_typing", "screen_result")]
 layout_mode = 3
@@ -55,11 +86,263 @@ text = "rifle visual furl quality plus else cultural complex role directly cell 
 label_settings = ExtResource("2_idj7w")
 autowrap_mode = 2
 
-[node name="ScreenMain" parent="." instance=ExtResource("4_v1gob")]
+[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("start_button")]
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_grg3l")
+start_button = NodePath("Button")
 
-[node name="ScreenTyping" parent="." instance=ExtResource("5_jw32o")]
+[node name="Button" type="Button" parent="ScreenMain"]
 layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -40.0
+offset_right = 100.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(100, 40)
+theme = SubResource("Theme_v1gob")
+text = "Start"
 
-[node name="ScreenResult" parent="." instance=ExtResource("6_50glp")]
+[node name="ScreenTyping" type="Control" parent="." node_paths=PackedStringArray("letters_root")]
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6_1p5hy")
+letters_root = NodePath("LettersRoot")
+letter_scene = ExtResource("7_h1m7h")
+letter_size = Vector2i(18, 34)
+line_separation = 5
+line_max_characters = 45
+letter_settings_goal = ExtResource("2_idj7w")
+letter_settings_correct = ExtResource("8_erwvk")
+letter_settings_wrong = ExtResource("9_2w5on")
+
+[node name="LettersRoot" type="Control" parent="ScreenTyping"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -390.0
+offset_top = 151.0
+offset_right = -350.0
+offset_bottom = 191.0
+grow_horizontal = 2
+
+[node name="ScreenResult" type="Control" parent="." node_paths=PackedStringArray("label_wpm", "label_cpm", "label_accuracy_real", "label_accuracy_result", "label_time", "letter_time_graph_root")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("10_346fj")
+label_wpm = NodePath("label_wpm_value")
+label_cpm = NodePath("label_cpm_value")
+label_accuracy_real = NodePath("label_acc_real_value")
+label_accuracy_result = NodePath("label_acc_result_value")
+label_time = NodePath("label_time_value")
+letter_time_graph_root = NodePath("letter_times_root")
+letter_time_graph_node = ExtResource("11_0sclb")
+
+[node name="TextureRect" type="TextureRect" parent="ScreenResult"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 50.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("12_sxkr1")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="label_cpm" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = -205.0
+offset_right = -390.0
+offset_bottom = -174.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "cpm"
+label_settings = SubResource("LabelSettings_dtese")
+
+[node name="label_cpm_value" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = -179.0
+offset_right = -390.0
+offset_bottom = -117.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "300"
+label_settings = SubResource("LabelSettings_d1t63")
+
+[node name="label_wpm" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = -116.0
+offset_right = -390.0
+offset_bottom = -85.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "wpm"
+label_settings = SubResource("LabelSettings_dtese")
+
+[node name="label_wpm_value" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = -90.0
+offset_right = -390.0
+offset_bottom = -28.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "60"
+label_settings = SubResource("LabelSettings_d1t63")
+
+[node name="label_acc_real" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = -31.0
+offset_right = -90.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "acc real"
+label_settings = SubResource("LabelSettings_dtese")
+
+[node name="label_acc_real_value" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = -5.0
+offset_right = -90.0
+offset_bottom = 55.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "100%"
+label_settings = SubResource("LabelSettings_d1t63")
+
+[node name="label_acc_result" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = 58.0
+offset_right = -90.0
+offset_bottom = 89.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "acc result"
+label_settings = SubResource("LabelSettings_dtese")
+
+[node name="label_acc_result_value" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = 84.0
+offset_right = -90.0
+offset_bottom = 144.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "100%"
+label_settings = SubResource("LabelSettings_d1t63")
+
+[node name="label_time" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = 145.0
+offset_right = -390.0
+offset_bottom = 176.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "time"
+label_settings = SubResource("LabelSettings_dtese")
+
+[node name="label_time_value" type="Label" parent="ScreenResult"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -590.0
+offset_top = 171.0
+offset_right = -390.0
+offset_bottom = 231.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "21s"
+label_settings = SubResource("LabelSettings_d1t63")
+
+[node name="letter_times_root" type="Control" parent="ScreenResult"]
+visible = false
+anchors_preset = 0
+offset_left = 300.0
+offset_top = 108.0
+offset_right = 1100.0
+offset_bottom = 308.0
+
+[node name="ColorRect" type="ColorRect" parent="ScreenResult/letter_times_root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.111196846, 0.11119683, 0.11119683, 1)

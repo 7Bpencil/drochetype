@@ -22,7 +22,7 @@ func _ready() -> void:
 func _on_start():
     screen_main.visible = false
     screen_typing.visible = true
-    var new_test_words = _generate_new_test(english_1k, 20)
+    var new_test_words = _generate_new_test(english_1k, 50)
     screen_typing.start_test(new_test_words)
 
 func _generate_new_test(all_words: PackedStringArray, words_count: int) -> PackedStringArray:
@@ -35,6 +35,5 @@ func _generate_new_test(all_words: PackedStringArray, words_count: int) -> Packe
     return result
 
 func _on_end(result: TypingResult):
-    screen_typing.visible = false
     screen_result.visible = true
     screen_result.show_result(result)
