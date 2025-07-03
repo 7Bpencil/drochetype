@@ -17,6 +17,7 @@ signal restart_test
 
 
 var english_1k: PackedStringArray
+var english_450k: PackedStringArray
 var letters: Array[Node] = []
 
 var goal_letters: PackedStringArray = []
@@ -51,13 +52,23 @@ func _ready() -> void:
 
 
 func _load_corpuses():
-    var english_1k_file = FileAccess.open("res://Data/engilsh_1k.txt", FileAccess.READ)
-    var english_1k_file_content = english_1k_file.get_as_text()
-    english_1k = english_1k_file_content.split("\r\n")
+    english_1k = _load_language("res://Data/english_1k.txt")
+    english_450k = _load_language("res://Data/english_450k.txt")
+
+
+func _load_language(path: String) -> PackedStringArray:
+    var words_file = FileAccess.open(path, FileAccess.READ)
+    var words_file_content = words_file.get_as_text()
+    var first_few_words = words_file_content.left(50) # lets hope there wont be 50 char long words...
+    if first_few_words.contains("\r\n"):
+        return words_file_content.split("\r\n")
+    if first_few_words.contains("\n"):
+        return words_file_content.split("\n")
+    return []
 
 
 func start_test():
-    goal_words = _generate_new_words(english_1k, 20)
+    goal_words = _generate_new_words(english_450k, 10)
     var goal_letters_count = _get_letters_count(goal_words)
 
     goal_letters.resize(goal_letters_count)
