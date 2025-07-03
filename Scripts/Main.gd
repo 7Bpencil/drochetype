@@ -28,9 +28,9 @@ func _ready() -> void:
 func _load_typing_data() -> TypingData:
     var typing_data = TypingData.new()
     typing_data.english_words_map = {
-        TypingData.WordsRarity.VeryCommon : _load_language("res://Data/english_1k.txt"),
+        TypingData.WordsRarity.VeryCommon : _load_language("res://Data/english_200.txt"),
         TypingData.WordsRarity.Common     : _load_language("res://Data/english_1k.txt"),
-        TypingData.WordsRarity.Rare       : _load_language("res://Data/english_1k.txt"),
+        TypingData.WordsRarity.Rare       : _load_language("res://Data/english_25k.txt"),
         TypingData.WordsRarity.VeryRare   : _load_language("res://Data/english_450k.txt"),
     }
     return typing_data
