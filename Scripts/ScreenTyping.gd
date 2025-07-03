@@ -16,6 +16,7 @@ signal show_typing_result(result: TypingResult)
 signal restart_test
 
 var typing_data: TypingData
+var max_letters_count: int
 var letters: Array[Control] = []
 var letter_size: Vector2
 var cursor: Control
@@ -36,12 +37,11 @@ var real_mistakes_count: int = 0
 var start_test_time: int = 0
 var previous_key_time: int = 0
 
-var goal_words: PackedStringArray
 var typing_config: TypingConfig
 
 
 func _ready() -> void:
-    var max_letters_count = max_line_characters * max_lines
+    max_letters_count = max_line_characters * max_lines
 
     letters.resize(max_letters_count)
     goal_letters.resize(max_letters_count)
@@ -59,13 +59,12 @@ func set_typing_data(data: TypingData):
 
 func start_test(new_typing_config: TypingConfig):
     typing_config = new_typing_config
-    goal_words = _generate_new_words(typing_config)
 
-    var goal_letters_count = _get_letters_count(goal_words)
+    var test_layout = _generate_new_words(typing_config)
 
-    goal_letters.resize(goal_letters_count)
-    letter_times.resize(goal_letters_count)
-    letter_results.resize(goal_letters_count)
+    goal_letters.resize(test_layout.letters_count)
+    letter_times.resize(test_layout.letters_count)
+    letter_results.resize(test_layout.letters_count)
 
     hit_first_letter = false
     input_letter_index = 0
@@ -73,56 +72,74 @@ func start_test(new_typing_config: TypingConfig):
     real_mistakes_count = 0
 
     var i: int = 0
-    var current_line_start_letter_index: int = 0
-    var line_index: int = 0
-    var current_line_length: int = 0
+    var lines_count = test_layout.lines.size()
 
-    for wi in range(goal_words.size()):
-        var end_whitespace: bool = wi != goal_words.size() - 1 # last word does not have whitespace on the end
-        var next_word = goal_words[wi]
-        var next_word_length = next_word.length() + 1 if end_whitespace else next_word.length()
+    for line_index in range(lines_count):
+        var line_words = test_layout.lines[line_index]
+        var line_words_count = line_words.size()
+        var current_line_start_letter_index = i
 
-        if current_line_length + next_word_length > max_line_characters:
-            current_line_length = next_word_length
-            current_line_start_letter_index = i
-            line_index += 1
-        else:
-            current_line_length += next_word_length
+        for word_index in range(line_words_count):
+            var next_word = line_words[word_index]
 
-        for next_letter in next_word:
-            _set_letter(i, next_letter, current_line_start_letter_index, line_index)
-            i += 1
+            for next_letter in next_word:
+                _set_letter(i, next_letter, current_line_start_letter_index, line_index)
+                i += 1
 
-        if end_whitespace:
-            _set_letter(i, " ", current_line_start_letter_index, line_index)
-            i += 1
+            # put space after every word except very last one
+            if not (line_index == lines_count - 1 and word_index == line_words_count - 1):
+                _set_letter(i, " ", current_line_start_letter_index, line_index)
+                i += 1
 
     for k in range(i, letters.size()):
         _clear_letter(k)
 
-    _set_cursor_position(0, goal_letters_count)
+    _set_cursor_position(0, test_layout.letters_count)
 
     is_running = true
     is_finished = false
 
 
-func _generate_new_words(typing_config: TypingConfig) -> PackedStringArray:
-    var all_words  = typing_data.english_words_map[typing_config.words_rarity]
-    var result: Array[String] = []
-    result.resize(typing_config.words_count)
-    for i in range(typing_config.words_count):
+func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
+    var all_words = typing_data.english_words_map[typing_config.words_rarity]
+    var test_max_letters_count: int = floor(max_letters_count * typing_data.test_size_map[typing_config.test_size]) as int
+
+    var result_lines: Array[Array] = []
+    var result_line_words: Array[String] = []
+
+    var line_index: int = 0
+    var current_line_length: int = 0
+    var test_current_letters_count: int = 0
+
+    while true:
         var random_index = randi_range(0, all_words.size() - 1)
-        var random_word = all_words[random_index]
-        result[i] = random_word
+        var next_word = all_words[random_index]
+        var next_word_length = next_word.length() + 1 # put space after every word
+
+        if test_current_letters_count + next_word_length > test_max_letters_count:
+            break
+        if current_line_length + next_word_length > max_line_characters:
+            if line_index + 1 < max_lines:
+                current_line_length = next_word_length
+                line_index += 1
+
+                result_lines.append(result_line_words)
+                result_line_words = []
+            else:
+                break
+        else:
+            current_line_length += next_word_length
+
+        test_current_letters_count += next_word_length
+        result_line_words.append(next_word)
+
+    result_lines.append(result_line_words)
+
+    var result = TypingLayout.new()
+    result.lines = result_lines
+    result.letters_count = test_current_letters_count - 1 # remove space after last word
+
     return result
-
-
-func _get_letters_count(words: PackedStringArray) -> int:
-    var letters_count: int = 0
-    for word in words:
-        letters_count += word.length()
-    letters_count += words.size() - 1 # put whitespaces between words
-    return letters_count
 
 
 func _spawn_cursor():
@@ -228,7 +245,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
             is_finished = true
             var end_test_time = current_key_time
             var test_time = end_test_time - start_test_time
-            var result = TypingResult.new(goal_words, test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
+            var result = TypingResult.new(test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
             show_typing_result.emit(result)
 
         _set_cursor_position(input_letter_index + 1, goal_letters.size())

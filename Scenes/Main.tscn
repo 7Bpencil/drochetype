@@ -309,7 +309,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.111196846, 0.11119683, 0.11119683, 1)
 
-[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("words_rarity_foldable", "words_rarity")]
+[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("words_rarity_foldable", "words_rarity", "test_size_foldable", "test_size")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -317,10 +317,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("4_grg3l")
-words_rarity_foldable = NodePath("FoldableContainer")
-words_rarity = NodePath("FoldableContainer/ItemList")
+words_rarity_foldable = NodePath("WordsRarity")
+words_rarity = NodePath("WordsRarity/ItemList")
+test_size_foldable = NodePath("TestSize")
+test_size = NodePath("TestSize/ItemList")
 
-[node name="FoldableContainer" type="FoldableContainer" parent="ScreenMain"]
+[node name="WordsRarity" type="FoldableContainer" parent="ScreenMain"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -334,7 +336,7 @@ focus_mode = 0
 folded = true
 title = "words rarity"
 
-[node name="ItemList" type="ItemList" parent="ScreenMain/FoldableContainer"]
+[node name="ItemList" type="ItemList" parent="ScreenMain/WordsRarity"]
 visible = false
 layout_mode = 2
 allow_search = false
@@ -345,3 +347,28 @@ item_0/text = "very common"
 item_1/text = "common"
 item_2/text = "rare"
 item_3/text = "very rare"
+
+[node name="TestSize" type="FoldableContainer" parent="ScreenMain"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 466.0
+offset_top = 201.0
+offset_right = 612.0
+offset_bottom = 240.0
+grow_horizontal = 2
+folded = true
+title = "test size"
+
+[node name="ItemList" type="ItemList" parent="ScreenMain/TestSize"]
+visible = false
+layout_mode = 2
+allow_search = false
+auto_width = true
+auto_height = true
+item_count = 4
+item_0/text = "small"
+item_1/text = "medium"
+item_2/text = "large"
+item_3/text = "extra large"

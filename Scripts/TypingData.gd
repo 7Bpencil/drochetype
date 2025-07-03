@@ -7,4 +7,12 @@ enum WordsRarity {
     VeryRare = 3
 }
 
+enum TestSize {
+    Small = 0,
+    Medium = 1,
+    Large = 2,
+    ExtraLarge = 3
+}
+
 var english_words_map: Dictionary
+var test_size_map: Dictionary

@@ -33,6 +33,12 @@ func _load_typing_data() -> TypingData:
         TypingData.WordsRarity.Rare       : _load_language("res://Data/english_25k.txt"),
         TypingData.WordsRarity.VeryRare   : _load_language("res://Data/english_450k.txt"),
     }
+    typing_data.test_size_map = {
+        TypingData.TestSize.Small      : 0.25,
+        TypingData.TestSize.Medium     : 0.5,
+        TypingData.TestSize.Large      : 0.75,
+        TypingData.TestSize.ExtraLarge : 1.0,
+    }
     return typing_data
 
 
@@ -50,7 +56,7 @@ func _load_language(path: String) -> PackedStringArray:
 func _load_typing_config() -> TypingConfig:
     var typing_config = TypingConfig.new()
     typing_config.words_rarity = TypingData.WordsRarity.VeryCommon
-    typing_config.words_count = 20
+    typing_config.test_size = TypingData.TestSize.Small
     return typing_config
 
 
