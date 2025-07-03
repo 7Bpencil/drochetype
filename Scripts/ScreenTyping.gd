@@ -15,9 +15,7 @@ class_name ScreenTyping extends Node
 signal show_typing_result(result: TypingResult)
 signal restart_test
 
-
-var english_1k: PackedStringArray
-var english_450k: PackedStringArray
+var typing_data: TypingData
 var letters: Array[Control] = []
 var letter_size: Vector2
 var cursor: Control
@@ -39,10 +37,10 @@ var start_test_time: int = 0
 var previous_key_time: int = 0
 
 var goal_words: PackedStringArray
+var typing_config: TypingConfig
 
 
 func _ready() -> void:
-    _load_corpuses()
     var max_letters_count = max_line_characters * max_lines
 
     letters.resize(max_letters_count)
@@ -55,24 +53,14 @@ func _ready() -> void:
         _spawn_letter(i)
 
 
-func _load_corpuses():
-    english_1k = _load_language("res://Data/english_1k.txt")
-    english_450k = _load_language("res://Data/english_450k.txt")
+func set_typing_data(data: TypingData):
+    typing_data = data
 
 
-func _load_language(path: String) -> PackedStringArray:
-    var words_file = FileAccess.open(path, FileAccess.READ)
-    var words_file_content = words_file.get_as_text()
-    var first_few_words = words_file_content.left(50) # lets hope there wont be 50 char long words...
-    if first_few_words.contains("\r\n"):
-        return words_file_content.split("\r\n")
-    if first_few_words.contains("\n"):
-        return words_file_content.split("\n")
-    return []
+func start_test(new_typing_config: TypingConfig):
+    typing_config = new_typing_config
+    goal_words = _generate_new_words(typing_config)
 
-
-func start_test():
-    goal_words = _generate_new_words(english_450k, 10)
     var goal_letters_count = _get_letters_count(goal_words)
 
     goal_letters.resize(goal_letters_count)
@@ -115,12 +103,14 @@ func start_test():
     _set_cursor_position(0, goal_letters_count)
 
     is_running = true
+    is_finished = false
 
 
-func _generate_new_words(all_words: PackedStringArray, words_count: int) -> PackedStringArray:
+func _generate_new_words(typing_config: TypingConfig) -> PackedStringArray:
+    var all_words  = typing_data.english_words_map[typing_config.words_rarity]
     var result: Array[String] = []
-    result.resize(words_count)
-    for i in range(words_count):
+    result.resize(typing_config.words_count)
+    for i in range(typing_config.words_count):
         var random_index = randi_range(0, all_words.size() - 1)
         var random_word = all_words[random_index]
         result[i] = random_word
@@ -193,7 +183,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
     if event_keycode == KEY_SPACE and event.is_pressed() and is_finished:
         is_running = false
         is_finished = false
-        restart_test.emit()
+        restart_test.emit(typing_config)
         return
 
     if is_finished:

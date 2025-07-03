@@ -71,15 +71,6 @@ text = "rifle visual furl quality plus else cultural complex role directly cell 
 label_settings = ExtResource("2_idj7w")
 autowrap_mode = 2
 
-[node name="ScreenMain" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("4_grg3l")
-
 [node name="ScreenTyping" type="Control" parent="." node_paths=PackedStringArray("letters_root")]
 layout_mode = 1
 anchors_preset = 15
@@ -100,14 +91,17 @@ letter_settings_wrong = ExtResource("9_2w5on")
 
 [node name="LettersRoot" type="Control" parent="ScreenTyping"]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = 8
 anchor_left = 0.5
+anchor_top = 0.5
 anchor_right = 0.5
+anchor_bottom = 0.5
 offset_left = -390.0
-offset_top = 151.0
+offset_top = -209.0
 offset_right = -350.0
-offset_bottom = 191.0
+offset_bottom = -169.0
 grow_horizontal = 2
+grow_vertical = 2
 
 [node name="ScreenResult" type="Control" parent="." node_paths=PackedStringArray("label_wpm", "label_cpm", "label_accuracy_real", "label_accuracy_result", "label_time", "letter_time_graph_root")]
 layout_mode = 1
@@ -314,3 +308,40 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.111196846, 0.11119683, 0.11119683, 1)
+
+[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("words_rarity_foldable", "words_rarity")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_grg3l")
+words_rarity_foldable = NodePath("FoldableContainer")
+words_rarity = NodePath("FoldableContainer/ItemList")
+
+[node name="FoldableContainer" type="FoldableContainer" parent="ScreenMain"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 466.0
+offset_top = 35.0
+offset_right = 612.0
+offset_bottom = 163.0
+grow_horizontal = 2
+focus_mode = 0
+folded = true
+title = "words rarity"
+
+[node name="ItemList" type="ItemList" parent="ScreenMain/FoldableContainer"]
+visible = false
+layout_mode = 2
+allow_search = false
+auto_width = true
+auto_height = true
+item_count = 4
+item_0/text = "very common"
+item_1/text = "common"
+item_2/text = "rare"
+item_3/text = "very rare"
