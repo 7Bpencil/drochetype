@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://bio74pv4r10o8"]
+
+[node name="Cursor" type="ColorRect"]
+offset_left = 33.0
+offset_right = 35.0
+offset_bottom = 34.0
+color = Color(0.8862745, 0.7176471, 0.078431375, 1)

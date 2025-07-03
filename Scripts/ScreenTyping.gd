@@ -3,7 +3,7 @@ class_name ScreenTyping extends Node
 
 @export var letters_root: Control
 @export var letter_scene: PackedScene
-@export var letter_size: Vector2i
+@export var cursor_scene: PackedScene
 @export var line_separation: int
 @export var max_line_characters: int
 @export var max_lines: int
@@ -18,7 +18,10 @@ signal restart_test
 
 var english_1k: PackedStringArray
 var english_450k: PackedStringArray
-var letters: Array[Node] = []
+var letters: Array[Control] = []
+var letter_size: Vector2
+var cursor: Control
+var cursor_size: Vector2
 
 var goal_letters: PackedStringArray = []
 var letter_times: Array[int] = []
@@ -47,6 +50,7 @@ func _ready() -> void:
     letter_times.resize(max_letters_count)
     letter_results.resize(max_letters_count)
 
+    _spawn_cursor()
     for i in range(max_letters_count):
         _spawn_letter(i)
 
@@ -108,6 +112,8 @@ func start_test():
     for k in range(i, letters.size()):
         _clear_letter(k)
 
+    _set_cursor_position(0, goal_letters_count)
+
     is_running = true
 
 
@@ -129,9 +135,16 @@ func _get_letters_count(words: PackedStringArray) -> int:
     return letters_count
 
 
+func _spawn_cursor():
+    cursor = cursor_scene.instantiate()
+    cursor_size = cursor.size
+    letters_root.add_child(cursor)
+
+
 func _spawn_letter(i: int):
     var letter = letter_scene.instantiate()
     letter.text = ""
+    letter_size = letter.size
     letters_root.add_child(letter)
     letters[i] = letter
 
@@ -147,6 +160,15 @@ func _set_letter(i: int, next_letter: String, current_line_start_letter_index: i
 func _clear_letter(i: int):
     var letter = letters[i]
     letter.text = ""
+
+
+func _set_cursor_position(i: int, goal_letters_count: int):
+    if i < goal_letters_count:
+        var letter_position = letters[i].position
+        cursor.position = Vector2(letter_position.x - cursor_size.x, letter_position.y)
+        cursor.show()
+    else:
+        cursor.hide()
 
 
 func _calculate_letter_position(current_line_letter_index: int, line_index: int) -> Vector2i:
@@ -185,6 +207,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
         var letter = letters[input_letter_index]
         letter.label_settings = letter_settings_goal
         letter.text = goal_char
+        _set_cursor_position(input_letter_index, goal_letters.size())
         previous_key_time = current_key_time
         return
 
@@ -217,6 +240,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
             var test_time = end_test_time - start_test_time
             var result = TypingResult.new(goal_words, test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
             show_typing_result.emit(result)
+
+        _set_cursor_position(input_letter_index + 1, goal_letters.size())
 
         input_letter_index += 1
         previous_key_time = current_key_time
