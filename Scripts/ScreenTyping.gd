@@ -41,6 +41,7 @@ var real_keys_count: int = 0
 var real_mistakes_count: int = 0
 var start_test_time: int = 0
 var previous_key_time: int = 0
+var timer_previous_seconds: int = -1
 
 var typing_config: TypingConfig
 
@@ -282,6 +283,10 @@ func _process(delta):
 
 func _timer_set_time(time_msec: int):
     var sec: int = floor(time_msec / 1000.0) as int
+    if sec == timer_previous_seconds:
+        return
+
+    timer_previous_seconds = sec
     var min: int = sec / 60
     var sec_remaining = sec - min * 60
     var time_format = "%02d:%02d" % [min, sec_remaining]
