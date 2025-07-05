@@ -102,7 +102,7 @@ func start_test(new_typing_config: TypingConfig):
 
 func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
     var all_words = typing_data.english_words_map[typing_config.words_rarity]
-    var test_max_letters_count: int = floor(max_letters_count * typing_data.test_size_map[typing_config.test_size]) as int
+    var test_max_lines_count: int = floor(max_lines * typing_data.test_size_map[typing_config.test_size]) as int
 
     var result_lines: Array[Array] = []
     var result_line_words: Array[String] = []
@@ -116,10 +116,10 @@ func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
         var next_word = all_words[random_index]
         var next_word_length = next_word.length() + 1 # put space after every word
 
-        if test_current_letters_count + next_word_length > test_max_letters_count:
+        if test_current_letters_count + next_word_length > max_letters_count:
             break
         if current_line_length + next_word_length > max_line_characters:
-            if line_index + 1 < max_lines:
+            if line_index + 1 < test_max_lines_count:
                 current_line_length = next_word_length
                 line_index += 1
 
