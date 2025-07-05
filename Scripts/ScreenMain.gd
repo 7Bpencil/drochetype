@@ -8,8 +8,7 @@ class_name ScreenMain extends Node
 @export var test_size: ItemList
 
 
-signal start_typing(typing_config: TypingConfig)
-signal restart_test_with_new_config(typing_config: TypingConfig)
+signal generate_new_test(typing_config: TypingConfig)
 
 
 var typing_config: TypingConfig
@@ -33,20 +32,16 @@ func _on_test_type_selected(index: int):
     typing_config.test_type = index
     test_type_foldable.folded = true
     words_rarity_foldable.visible = typing_config.test_type == TypingData.TestType.Words
-    restart_test_with_new_config.emit(typing_config)
+    generate_new_test.emit(typing_config)
 
 
 func _on_words_rarity_selected(index: int):
     typing_config.words_rarity = index
     words_rarity_foldable.folded = true
-    restart_test_with_new_config.emit(typing_config)
+    generate_new_test.emit(typing_config)
 
 
 func _on_test_size_selected(index: int):
     typing_config.test_size = index
     test_size_foldable.folded = true
-    restart_test_with_new_config.emit(typing_config)
-
-
-func after_init():
-    start_typing.emit(typing_config)
+    generate_new_test.emit(typing_config)

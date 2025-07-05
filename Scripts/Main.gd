@@ -12,17 +12,17 @@ func _ready() -> void:
     screen_typing.hide()
     screen_result.hide()
 
-    screen_main.start_typing.connect(_on_start)
-    screen_main.restart_test_with_new_config.connect(_on_restart)
-    screen_typing.show_typing_result.connect(_on_end)
-    screen_typing.restart_test.connect(_on_restart)
+    screen_main.generate_new_test.connect(_on_restart)
+    screen_typing.show_test_result.connect(_on_end)
+    screen_typing.generate_new_test.connect(_on_restart)
+    screen_typing.reset_current_test.connect(_on_reset)
 
     var typing_data = _load_typing_data()
     var typing_config = _load_typing_config()
 
     screen_typing.set_typing_data(typing_data)
     screen_main.set_typing_config(typing_config)
-    screen_main.after_init()
+    _on_start(typing_config)
 
 
 func _load_typing_data() -> TypingData:
@@ -82,6 +82,11 @@ func _on_start(typing_config: TypingConfig):
 func _on_restart(typing_config: TypingConfig):
     screen_result.hide()
     screen_typing.start_test(typing_config)
+
+
+func _on_reset():
+    screen_result.hide()
+    screen_typing.reset_test()
 
 
 func _on_end(result: TypingResult):

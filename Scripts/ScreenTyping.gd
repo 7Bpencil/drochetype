@@ -16,8 +16,9 @@ class_name ScreenTyping extends Node
 @export var letter_settings_wrong: Resource
 
 
-signal show_typing_result(result: TypingResult)
-signal restart_test
+signal show_test_result(result: TypingResult)
+signal generate_new_test(typing_config: TypingConfig)
+signal reset_current_test
 
 
 var typing_data: TypingData
@@ -44,6 +45,7 @@ var previous_key_time: int = 0
 var timer_previous_seconds: int = -1
 
 var typing_config: TypingConfig
+var test_layout: TypingLayout
 
 
 func _ready() -> void:
@@ -65,8 +67,7 @@ func set_typing_data(data: TypingData):
 
 func start_test(new_typing_config: TypingConfig):
     typing_config = new_typing_config
-
-    var test_layout = _generate_new_words(typing_config)
+    test_layout = _generate_new_words(typing_config)
 
     goal_letters.resize(test_layout.letters_count)
     letter_times.resize(test_layout.letters_count)
@@ -99,6 +100,23 @@ func start_test(new_typing_config: TypingConfig):
 
     for k in range(i, letters.size()):
         _clear_letter(k)
+
+    _set_cursor_position(0, test_layout.letters_count)
+    _timer_set_time(0)
+    _timer_set_state(TimerState.Waiting)
+
+    is_running = true
+    is_finished = false
+
+
+func reset_test():
+    for i in range(input_letter_index):
+        _reset_letter(i, goal_letters[i])
+
+    hit_first_letter = false
+    input_letter_index = 0
+    real_keys_count = 0
+    real_mistakes_count = 0
 
     _set_cursor_position(0, test_layout.letters_count)
     _timer_set_time(0)
@@ -181,6 +199,12 @@ func _set_letter(i: int, next_letter: String, current_line_start_letter_index: i
     goal_letters[i] = next_letter
 
 
+func _reset_letter(i: int, next_letter: String):
+    var letter = letters[i]
+    letter.text = next_letter
+    letter.label_settings = letter_settings_goal
+
+
 func _clear_letter(i: int):
     var letter = letters[i]
     letter.text = ""
@@ -217,23 +241,31 @@ func _unhandled_key_input(event: InputEvent) -> void:
     if event_keycode == KEY_SPACE and event.is_pressed() and is_finished:
         is_running = false
         is_finished = false
-        restart_test.emit(typing_config)
+        generate_new_test.emit(typing_config)
         return
+
+    if event_keycode == KEY_ESCAPE and event.is_pressed():
+        if input_letter_index == 0:
+            generate_new_test.emit(typing_config)
+        else:
+            reset_current_test.emit()
 
     if is_finished:
         return
 
     var current_key_time: int = Time.get_ticks_msec()
 
-    if event_keycode == KEY_BACKSPACE and event.is_pressed() and input_letter_index > 0:
-        input_letter_index -= 1
-        var goal_char = goal_letters[input_letter_index]
-        var letter = letters[input_letter_index]
-        letter.label_settings = letter_settings_goal
-        letter.text = goal_char
-        _set_cursor_position(input_letter_index, goal_letters.size())
-        previous_key_time = current_key_time
-        return
+    if event_keycode == KEY_BACKSPACE and event.is_pressed():
+        if input_letter_index == 0:
+            return
+        if input_letter_index == 1:
+            reset_current_test.emit()
+        else:
+            input_letter_index -= 1
+            previous_key_time = current_key_time
+            _reset_letter(input_letter_index, goal_letters[input_letter_index])
+            _set_cursor_position(input_letter_index, goal_letters.size())
+            return
 
     if keys.has(event_keycode) and event.is_pressed() and input_letter_index < goal_letters.size():
         if not hit_first_letter:
@@ -266,7 +298,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
             var result = TypingResult.new(test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
             _timer_set_time(test_time)
             _timer_set_state(TimerState.Finished)
-            show_typing_result.emit(result)
+            show_test_result.emit(result)
 
         previous_key_time = current_key_time
         input_letter_index += 1
