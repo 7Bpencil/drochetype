@@ -27,17 +27,15 @@ func _ready() -> void:
 
 func _load_typing_data() -> TypingData:
     var typing_data = TypingData.new()
-    typing_data.english_words_map = {
-        TypingData.TestType.Bigrams           : _load_language("res://Data/english_bigrams.txt"),
-        TypingData.TestType.Trigrams          : _load_language("res://Data/english_trigrams.txt"),
-        TypingData.TestType.Words : {
-            TypingData.WordsRarity.VeryCommon : _load_language("res://Data/english_200.txt"),
-            TypingData.WordsRarity.Common     : _load_language("res://Data/english_1k.txt"),
-            TypingData.WordsRarity.Rare       : _load_language("res://Data/english_25k.txt"),
-            TypingData.WordsRarity.VeryRare   : _load_language("res://Data/english_450k.txt"),
-        }
+    typing_data.english_bigrams           = _load_language("res://Data/english_bigrams.txt")
+    typing_data.english_trigrams          = _load_language("res://Data/english_trigrams.txt")
+    typing_data.english_words = {
+        TypingData.WordsRarity.VeryCommon : _load_language("res://Data/english_200.txt"),
+        TypingData.WordsRarity.Common     : _load_language("res://Data/english_1k.txt"),
+        TypingData.WordsRarity.Rare       : _load_language("res://Data/english_25k.txt"),
+        TypingData.WordsRarity.VeryRare   : _load_language("res://Data/english_450k.txt"),
     }
-    typing_data.test_size_map = {
+    typing_data.test_sizes = {
         TypingData.TestSize.Small      : 0.25,
         TypingData.TestSize.Medium     : 0.5,
         TypingData.TestSize.Large      : 0.75,

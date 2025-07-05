@@ -20,5 +20,7 @@ enum TestSize {
     ExtraLarge = 3,
 }
 
-var english_words_map: Dictionary
-var test_size_map: Dictionary
+var english_bigrams: PackedStringArray
+var english_trigrams: PackedStringArray
+var english_words: Dictionary
+var test_sizes: Dictionary
