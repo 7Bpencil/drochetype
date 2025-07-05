@@ -248,10 +248,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
             var result = TypingResult.new(test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
             show_typing_result.emit(result)
 
-        _set_cursor_position(input_letter_index + 1, goal_letters.size())
-
-        input_letter_index += 1
         previous_key_time = current_key_time
+        input_letter_index += 1
+        _set_cursor_position(input_letter_index, goal_letters.size())
+
         return
 
 
