@@ -1,6 +1,10 @@
 class_name ScreenTyping extends Node
 
 
+@export var timer: Label
+@export var timer_setting_waiting: Resource
+@export var timer_setting_running: Resource
+@export var timer_setting_finished: Resource
 @export var letters_root: Control
 @export var letter_scene: PackedScene
 @export var cursor_scene: PackedScene
@@ -14,6 +18,7 @@ class_name ScreenTyping extends Node
 
 signal show_typing_result(result: TypingResult)
 signal restart_test
+
 
 var typing_data: TypingData
 var max_letters_count: int
@@ -95,6 +100,8 @@ func start_test(new_typing_config: TypingConfig):
         _clear_letter(k)
 
     _set_cursor_position(0, test_layout.letters_count)
+    _timer_set_time(0)
+    _timer_set_state(TimerState.Waiting)
 
     is_running = true
     is_finished = false
@@ -231,6 +238,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
         if not hit_first_letter:
             start_test_time = current_key_time
             hit_first_letter = true
+            _timer_set_state(TimerState.Running)
 
         var key = keys[event_keycode]
         var key_char = key[1] if is_shift_held else key[0]
@@ -255,6 +263,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
             var end_test_time = current_key_time
             var test_time = end_test_time - start_test_time
             var result = TypingResult.new(test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
+            _timer_set_time(test_time)
+            _timer_set_state(TimerState.Finished)
             show_typing_result.emit(result)
 
         previous_key_time = current_key_time
@@ -262,6 +272,37 @@ func _unhandled_key_input(event: InputEvent) -> void:
         _set_cursor_position(input_letter_index, goal_letters.size())
 
         return
+
+
+func _process(delta):
+    var time = Time.get_ticks_msec()
+    if is_running and hit_first_letter and not is_finished:
+        _timer_set_time(time - start_test_time)
+
+
+func _timer_set_time(time_msec: int):
+    var sec: int = floor(time_msec / 1000.0) as int
+    var min: int = sec / 60
+    var sec_remaining = sec - min * 60
+    var time_format = "%02d:%02d" % [min, sec_remaining]
+    timer.text = time_format
+
+
+func _timer_set_state(state: TimerState):
+    match state:
+        TimerState.Waiting:
+            timer.label_settings = timer_setting_waiting
+        TimerState.Running:
+            timer.label_settings = timer_setting_running
+        TimerState.Finished:
+            timer.label_settings = timer_setting_finished
+
+
+enum TimerState {
+    Waiting,
+    Running,
+    Finished
+}
 
 
 const keys = {
