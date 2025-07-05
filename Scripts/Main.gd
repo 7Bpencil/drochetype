@@ -36,10 +36,10 @@ func _load_typing_data() -> TypingData:
         TypingData.WordsRarity.VeryRare   : _load_language("res://Data/english_450k.txt"),
     }
     typing_data.test_sizes = {
-        TypingData.TestSize.Small      : 0.25,
-        TypingData.TestSize.Medium     : 0.5,
-        TypingData.TestSize.Large      : 0.75,
-        TypingData.TestSize.ExtraLarge : 1.0,
+        TypingData.TestSize.VerySmall  : 1,
+        TypingData.TestSize.Small      : 3,
+        TypingData.TestSize.Medium     : 6,
+        TypingData.TestSize.Large      : 13,
     }
     return typing_data
 

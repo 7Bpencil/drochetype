@@ -102,7 +102,7 @@ func start_test(new_typing_config: TypingConfig):
 
 func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
     var all_words = _get_words_corpus(typing_config)
-    var test_max_lines_count: int = floor(max_lines * typing_data.test_sizes[typing_config.test_size]) as int
+    var test_max_lines_count: int = min(max_lines, typing_data.test_sizes[typing_config.test_size])
 
     var result_lines: Array[Array] = []
     var result_line_words: Array[String] = []

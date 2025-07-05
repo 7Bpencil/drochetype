@@ -318,32 +318,32 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("4_grg3l")
-test_type_foldable = NodePath("VBoxContainer/TestType")
-test_type = NodePath("VBoxContainer/TestType/ItemList")
-words_rarity_foldable = NodePath("VBoxContainer/WordsRarity")
-words_rarity = NodePath("VBoxContainer/WordsRarity/ItemList")
-test_size_foldable = NodePath("VBoxContainer/TestSize")
-test_size = NodePath("VBoxContainer/TestSize/ItemList")
+test_type_foldable = NodePath("TestSettings/TestType")
+test_type = NodePath("TestSettings/TestType/ItemList")
+words_rarity_foldable = NodePath("TestSettings/WordsRarity")
+words_rarity = NodePath("TestSettings/WordsRarity/ItemList")
+test_size_foldable = NodePath("TestSettings/TestSize")
+test_size = NodePath("TestSettings/TestSize/ItemList")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ScreenMain"]
+[node name="TestSettings" type="VBoxContainer" parent="ScreenMain"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = 474.0
-offset_top = 45.0
+offset_left = 455.0
+offset_top = 151.0
 offset_right = 595.0
-offset_bottom = 111.0
+offset_bottom = 252.0
 grow_horizontal = 2
 
-[node name="TestType" type="FoldableContainer" parent="ScreenMain/VBoxContainer"]
+[node name="TestType" type="FoldableContainer" parent="ScreenMain/TestSettings"]
 layout_mode = 2
 focus_mode = 0
 folded = true
 title = "test type"
 foldable_group = ExtResource("14_1p5hy")
 
-[node name="ItemList" type="ItemList" parent="ScreenMain/VBoxContainer/TestType"]
+[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/TestType"]
 visible = false
 layout_mode = 2
 allow_search = false
@@ -354,14 +354,14 @@ item_0/text = "bigrams"
 item_1/text = "trigrams"
 item_2/text = "words"
 
-[node name="WordsRarity" type="FoldableContainer" parent="ScreenMain/VBoxContainer"]
+[node name="WordsRarity" type="FoldableContainer" parent="ScreenMain/TestSettings"]
 layout_mode = 2
 focus_mode = 0
 folded = true
 title = "words rarity"
 foldable_group = ExtResource("14_1p5hy")
 
-[node name="ItemList" type="ItemList" parent="ScreenMain/VBoxContainer/WordsRarity"]
+[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/WordsRarity"]
 visible = false
 layout_mode = 2
 allow_search = false
@@ -373,21 +373,21 @@ item_1/text = "common"
 item_2/text = "rare"
 item_3/text = "very rare"
 
-[node name="TestSize" type="FoldableContainer" parent="ScreenMain/VBoxContainer"]
+[node name="TestSize" type="FoldableContainer" parent="ScreenMain/TestSettings"]
 layout_mode = 2
 focus_mode = 0
 folded = true
 title = "test size"
 foldable_group = ExtResource("14_1p5hy")
 
-[node name="ItemList" type="ItemList" parent="ScreenMain/VBoxContainer/TestSize"]
+[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/TestSize"]
 visible = false
 layout_mode = 2
 allow_search = false
 auto_width = true
 auto_height = true
 item_count = 4
-item_0/text = "small"
-item_1/text = "medium"
-item_2/text = "large"
-item_3/text = "extra large"
+item_0/text = "very small"
+item_1/text = "small"
+item_2/text = "medium"
+item_3/text = "large"
