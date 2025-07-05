@@ -1,5 +1,6 @@
 class_name TypingConfig
 
 
+var test_type: TypingData.TestType
 var words_rarity: TypingData.WordsRarity
 var test_size: TypingData.TestSize

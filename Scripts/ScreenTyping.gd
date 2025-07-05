@@ -101,7 +101,7 @@ func start_test(new_typing_config: TypingConfig):
 
 
 func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
-    var all_words = typing_data.english_words_map[typing_config.words_rarity]
+    var all_words = _get_words_corpus(typing_config)
     var test_max_lines_count: int = floor(max_lines * typing_data.test_size_map[typing_config.test_size]) as int
 
     var result_lines: Array[Array] = []
@@ -140,6 +140,15 @@ func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
     result.letters_count = test_current_letters_count - 1 # remove space after last word
 
     return result
+
+
+func _get_words_corpus(typing_config: TypingConfig):
+    if typing_config.test_type == TypingData.TestType.Bigrams:
+        return typing_data.english_words_map[TypingData.TestType.Bigrams]
+    if typing_config.test_type == TypingData.TestType.Trigrams:
+        return typing_data.english_words_map[TypingData.TestType.Trigrams]
+    if typing_config.test_type == TypingData.TestType.Words:
+        return typing_data.english_words_map[TypingData.TestType.Words][typing_config.words_rarity]
 
 
 func _spawn_cursor():

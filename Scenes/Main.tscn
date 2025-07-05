@@ -310,7 +310,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.111196846, 0.11119683, 0.11119683, 1)
 
-[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("words_rarity_foldable", "words_rarity", "test_size_foldable", "test_size")]
+[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("test_type_foldable", "test_type", "words_rarity_foldable", "words_rarity", "test_size_foldable", "test_size")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -318,6 +318,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("4_grg3l")
+test_type_foldable = NodePath("VBoxContainer/TestType")
+test_type = NodePath("VBoxContainer/TestType/ItemList")
 words_rarity_foldable = NodePath("VBoxContainer/WordsRarity")
 words_rarity = NodePath("VBoxContainer/WordsRarity/ItemList")
 test_size_foldable = NodePath("VBoxContainer/TestSize")
@@ -333,6 +335,24 @@ offset_top = 45.0
 offset_right = 595.0
 offset_bottom = 111.0
 grow_horizontal = 2
+
+[node name="TestType" type="FoldableContainer" parent="ScreenMain/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+folded = true
+title = "test type"
+foldable_group = ExtResource("14_1p5hy")
+
+[node name="ItemList" type="ItemList" parent="ScreenMain/VBoxContainer/TestType"]
+visible = false
+layout_mode = 2
+allow_search = false
+auto_width = true
+auto_height = true
+item_count = 3
+item_0/text = "bigrams"
+item_1/text = "trigrams"
+item_2/text = "words"
 
 [node name="WordsRarity" type="FoldableContainer" parent="ScreenMain/VBoxContainer"]
 layout_mode = 2
@@ -355,6 +375,7 @@ item_3/text = "very rare"
 
 [node name="TestSize" type="FoldableContainer" parent="ScreenMain/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 folded = true
 title = "test size"
 foldable_group = ExtResource("14_1p5hy")
