@@ -1,6 +1,5 @@
-[gd_scene load_steps=19 format=3 uid="uid://0kcwtttcr5bt"]
+[gd_scene load_steps=17 format=3 uid="uid://0kcwtttcr5bt"]
 
-[ext_resource type="Texture2D" uid="uid://cpkasejx0m1t" path="res://Images/References/keypresso.PNG" id="1_r150o"]
 [ext_resource type="LabelSettings" uid="uid://duxx0llfqminq" path="res://LabelSettings/goal.tres" id="2_idj7w"]
 [ext_resource type="Script" uid="uid://wcffn5nhpmis" path="res://Scripts/Main.gd" id="3_pbw6q"]
 [ext_resource type="Script" uid="uid://dangdinrwugo" path="res://Scripts/ScreenMain.gd" id="4_grg3l"]
@@ -14,7 +13,6 @@
 [ext_resource type="LabelSettings" uid="uid://dct5qndypr4ug" path="res://LabelSettings/wrong.tres" id="9_2w5on"]
 [ext_resource type="LabelSettings" uid="uid://bxcn5ahoqe2bf" path="res://LabelSettings/timer_waiting.tres" id="9_h1m7h"]
 [ext_resource type="Script" uid="uid://d1s2yg820ksd4" path="res://Scripts/ScreenResult.gd" id="10_346fj"]
-[ext_resource type="Texture2D" uid="uid://bt1o6kyv5g7gk" path="res://Images/References/monkeytype_result.PNG" id="12_sxkr1"]
 [ext_resource type="FoldableGroup" uid="uid://c3p0xx38m8bg8" path="res://FoldableGroups/screen_main_foldable_group.tres" id="14_1p5hy"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_dtese"]
@@ -46,33 +44,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
-
-[node name="ReferenceScreen" type="TextureRect" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("1_r150o")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="ReferenceLabel" type="Label" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -417.0
-offset_top = 151.0
-offset_right = 403.0
-offset_bottom = 2545.0
-grow_horizontal = 2
-text = "rifle visual furl quality plus else cultural complex role directly cell athlete handful yell small terrible blue scandal telephone newly"
-label_settings = ExtResource("2_idj7w")
-autowrap_mode = 2
 
 [node name="ScreenTyping" type="Control" parent="." node_paths=PackedStringArray("timer", "letters_root")]
 layout_mode = 1
@@ -138,20 +109,6 @@ script = ExtResource("10_346fj")
 label_wpm = NodePath("label_wpm_value")
 label_cpm = NodePath("label_cpm_value")
 label_accuracy_real = NodePath("label_acc_real_value")
-
-[node name="TextureRect" type="TextureRect" parent="ScreenResult"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 50.0
-offset_bottom = 50.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("12_sxkr1")
-expand_mode = 2
-stretch_mode = 4
 
 [node name="label_cpm" type="Label" parent="ScreenResult"]
 layout_mode = 1
