@@ -127,7 +127,6 @@ func reset_test():
 
 
 func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
-    var all_words = _get_words_corpus(typing_config)
     var test_max_lines_count: int = min(max_lines, typing_data.test_sizes[typing_config.test_size])
 
     var result_lines: Array[Array] = []
@@ -138,8 +137,7 @@ func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
     var test_current_letters_count: int = 0
 
     while true:
-        var random_index = randi_range(0, all_words.size() - 1)
-        var next_word = all_words[random_index]
+        var next_word = _generate_next_word(typing_config)
         var next_word_length = next_word.length() + 1 # put space after every word
 
         if test_current_letters_count + next_word_length > max_letters_count:
@@ -168,6 +166,18 @@ func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
     return result
 
 
+func _generate_next_word(typing_config: TypingConfig):
+    if typing_config.test_language == TypingData.TestLanguage.English:
+        var all_words = _get_words_corpus(typing_config)
+        var random_index = randi_range(0, all_words.size() - 1)
+        var next_word = all_words[random_index]
+        return next_word
+    if typing_config.test_language == TypingData.TestLanguage.Numbers:
+        var numbers_length = 6
+        return _generate_numbers_word(numbers_length)
+    return "error"
+
+
 func _get_words_corpus(typing_config: TypingConfig):
     if typing_config.test_type == TypingData.TestType.Bigrams:
         return typing_data.english_bigrams
@@ -175,6 +185,19 @@ func _get_words_corpus(typing_config: TypingConfig):
         return typing_data.english_trigrams
     if typing_config.test_type == TypingData.TestType.Words:
         return typing_data.english_words[typing_config.words_rarity]
+
+
+func _generate_numbers_word(word_length: int) -> String:
+    var numbers = typing_data.numbers
+    var result: Array[String] = []
+    result.resize(word_length)
+    for i in range(word_length):
+        var i_looped = i % numbers.size()
+        if i_looped == 0:
+            numbers.shuffle()
+        result[i] = numbers[i_looped]
+
+    return "".join(result)
 
 
 func _spawn_cursor():

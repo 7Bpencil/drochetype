@@ -27,6 +27,7 @@ func _ready() -> void:
 
 func _load_typing_data() -> TypingData:
     var typing_data = TypingData.new()
+    typing_data.numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     typing_data.english_bigrams           = _load_language("res://Data/english_bigrams.txt")
     typing_data.english_trigrams          = _load_language("res://Data/english_trigrams.txt")
     typing_data.english_words = {
@@ -66,6 +67,7 @@ func _get_line_endings(file_content: String):
 
 func _load_typing_config() -> TypingConfig:
     var typing_config = TypingConfig.new()
+    typing_config.test_language = TypingData.TestLanguage.English
     typing_config.test_type = TypingData.TestType.Words
     typing_config.words_rarity = TypingData.WordsRarity.VeryCommon
     typing_config.test_size = TypingData.TestSize.Small

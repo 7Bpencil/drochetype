@@ -265,7 +265,7 @@ grow_vertical = 2
 text = "100%"
 label_settings = SubResource("LabelSettings_d1t63")
 
-[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("test_type_foldable", "test_type", "words_rarity_foldable", "words_rarity", "test_size_foldable", "test_size")]
+[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("test_language_foldable", "test_language", "test_type_foldable", "test_type", "words_rarity_foldable", "words_rarity", "test_size_foldable", "test_size")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -273,6 +273,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("4_grg3l")
+test_language_foldable = NodePath("TestSettings/TestLanguage")
+test_language = NodePath("TestSettings/TestLanguage/ItemList")
 test_type_foldable = NodePath("TestSettings/TestType")
 test_type = NodePath("TestSettings/TestType/ItemList")
 words_rarity_foldable = NodePath("TestSettings/WordsRarity")
@@ -290,6 +292,23 @@ offset_top = 151.0
 offset_right = 595.0
 offset_bottom = 252.0
 grow_horizontal = 2
+
+[node name="TestLanguage" type="FoldableContainer" parent="ScreenMain/TestSettings"]
+layout_mode = 2
+focus_mode = 0
+folded = true
+title = "test language"
+foldable_group = ExtResource("14_1p5hy")
+
+[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/TestLanguage"]
+visible = false
+layout_mode = 2
+allow_search = false
+auto_width = true
+auto_height = true
+item_count = 2
+item_0/text = "numbers"
+item_1/text = "english"
 
 [node name="TestType" type="FoldableContainer" parent="ScreenMain/TestSettings"]
 layout_mode = 2

@@ -1,5 +1,10 @@
 class_name TypingData
 
+enum TestLanguage {
+    Numbers,
+    English
+}
+
 enum TestType {
     Bigrams,
     Trigrams,
@@ -20,6 +25,7 @@ enum TestSize {
     Large,
 }
 
+var numbers: Array
 var english_bigrams: PackedStringArray
 var english_trigrams: PackedStringArray
 var english_words: Dictionary
