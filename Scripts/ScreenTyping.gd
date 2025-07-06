@@ -381,6 +381,18 @@ const keys = {
     KEY_7 : ["7", "&"],
     KEY_8 : ["8", "*"],
     KEY_9 : ["9", "("],
+    # symbols
+    KEY_MINUS        : ["-", "_"],
+    KEY_EQUAL        : ["=", "+"],
+    KEY_BRACKETLEFT  : ["[", "{"],
+    KEY_BRACKETRIGHT : ["]", "}"],
+    KEY_BACKSLASH    : ["\\", "|"],
+    KEY_SEMICOLON    : [";", ":"],
+    KEY_APOSTROPHE   : ["'", "\""],
+    KEY_SLASH        : ["/", "?"],
+    KEY_COMMA        : [",", "<"],
+    KEY_PERIOD       : [".", ">"],
+    KEY_QUOTELEFT    : ["`", "~"],
     # special
     KEY_SPACE : [" ", " "],
 }
