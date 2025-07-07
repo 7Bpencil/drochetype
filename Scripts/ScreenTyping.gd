@@ -167,27 +167,38 @@ func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
 
 
 func _generate_next_word(typing_config: TypingConfig):
-    if typing_config.test_language == TypingData.TestLanguage.English:
-        var all_words = _get_words_corpus(typing_config)
-        var random_index = randi_range(0, all_words.size() - 1)
-        var next_word = all_words[random_index]
-        return next_word
-    if typing_config.test_language == TypingData.TestLanguage.Numbers:
-        var numbers_length = 6
-        return _generate_numbers_word(numbers_length)
-    return "error"
+    match typing_config.test_language:
+        TypingData.TestLanguage.English:
+            return _generate_natural_language_word(typing_config, typing_data.english)
+        TypingData.TestLanguage.Russian:
+            return _generate_natural_language_word(typing_config, typing_data.russian)
+        TypingData.TestLanguage.Numbers:
+            return _generate_numbers_word(typing_config)
+        _:
+            return "error"
 
 
-func _get_words_corpus(typing_config: TypingConfig):
-    if typing_config.test_type == TypingData.TestType.Bigrams:
-        return typing_data.english_bigrams
-    if typing_config.test_type == TypingData.TestType.Trigrams:
-        return typing_data.english_trigrams
-    if typing_config.test_type == TypingData.TestType.Words:
-        return typing_data.english_words[typing_config.words_rarity]
+func _generate_natural_language_word(typing_config: TypingConfig, language_data: NaturalLanguageData) -> String:
+    var all_words = _get_words_corpus(typing_config, language_data)
+    var random_index = randi_range(0, all_words.size() - 1)
+    var next_word = all_words[random_index]
+    return next_word
 
 
-func _generate_numbers_word(word_length: int) -> String:
+func _get_words_corpus(typing_config: TypingConfig, language_data: NaturalLanguageData):
+    match typing_config.test_type:
+        TypingData.TestType.Bigrams:
+            return language_data.bigrams
+        TypingData.TestType.Trigrams:
+            return language_data.trigrams
+        TypingData.TestType.Words:
+            return language_data.words[typing_config.words_rarity]
+        _:
+            return language_data.bigrams
+
+
+func _generate_numbers_word(typing_config: TypingConfig) -> String:
+    var word_length = 6
     var numbers = typing_data.numbers
     var result: Array[String] = []
     result.resize(word_length)

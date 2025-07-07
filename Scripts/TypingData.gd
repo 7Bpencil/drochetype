@@ -2,7 +2,8 @@ class_name TypingData
 
 enum TestLanguage {
     Numbers,
-    English
+    English,
+    Russian,
 }
 
 enum TestType {
@@ -26,9 +27,8 @@ enum TestSize {
 }
 
 var numbers: Array
-var english_bigrams: PackedStringArray
-var english_trigrams: PackedStringArray
-var english_words: Dictionary
+var english: NaturalLanguageData
+var russian: NaturalLanguageData
 var test_sizes: Dictionary
 var keys: Dictionary
 
