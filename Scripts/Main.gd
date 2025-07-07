@@ -57,9 +57,9 @@ func _load_typing_data() -> TypingData:
         TypingData.TestSize.Large      : 13,
     }
 
-    typing_data.keys = {}
-    for key in typing_data.keys_array:
-        typing_data.keys[key] = true
+    typing_data.keycodes = {}
+    for keycode in typing_data.keycodes_array:
+        typing_data.keycodes[keycode] = true
 
     return typing_data
 

@@ -301,7 +301,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
             _set_cursor_position(input_letter_index, goal_letters.size())
             return
 
-    if typing_data.keys.has(event_keycode) and event.is_pressed() and input_letter_index < goal_letters.size():
+    if typing_data.keycodes.has(event_keycode) and event.is_pressed() and input_letter_index < goal_letters.size():
         if not hit_first_letter:
             start_test_time = current_key_time
             hit_first_letter = true

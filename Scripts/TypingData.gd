@@ -30,9 +30,9 @@ var numbers: Array
 var english: NaturalLanguageData
 var russian: NaturalLanguageData
 var test_sizes: Dictionary
-var keys: Dictionary
+var keycodes: Dictionary
 
-const keys_array: Array[Key] = [
+const keycodes_array: Array[Key] = [
     # alphabet
     KEY_A,
     KEY_B,
