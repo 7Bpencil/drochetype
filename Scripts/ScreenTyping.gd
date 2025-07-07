@@ -290,14 +290,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
             _set_cursor_position(input_letter_index, goal_letters.size())
             return
 
-    if keys.has(event_keycode) and event.is_pressed() and input_letter_index < goal_letters.size():
+    if typing_data.keys.has(event_keycode) and event.is_pressed() and input_letter_index < goal_letters.size():
         if not hit_first_letter:
             start_test_time = current_key_time
             hit_first_letter = true
             _timer_set_state(TimerState.Running)
 
-        var key = keys[event_keycode]
-        var key_char = key[1] if is_shift_held else key[0]
+        var key_char = "%c" % event.unicode
         var goal_char = goal_letters[input_letter_index]
         var letter = letters[input_letter_index]
         var is_correct = key_char == goal_char
@@ -362,60 +361,4 @@ enum TimerState {
     Waiting,
     Running,
     Finished
-}
-
-
-const keys = {
-    # alphabet
-    KEY_A : ["a", "A"],
-    KEY_B : ["b", "B"],
-    KEY_C : ["c", "C"],
-    KEY_D : ["d", "D"],
-    KEY_E : ["e", "E"],
-    KEY_F : ["f", "F"],
-    KEY_G : ["g", "G"],
-    KEY_H : ["h", "H"],
-    KEY_I : ["i", "I"],
-    KEY_J : ["j", "J"],
-    KEY_K : ["k", "K"],
-    KEY_L : ["l", "L"],
-    KEY_M : ["m", "M"],
-    KEY_N : ["n", "N"],
-    KEY_O : ["o", "O"],
-    KEY_P : ["p", "P"],
-    KEY_Q : ["q", "Q"],
-    KEY_R : ["r", "R"],
-    KEY_S : ["s", "S"],
-    KEY_T : ["t", "T"],
-    KEY_U : ["u", "U"],
-    KEY_V : ["v", "V"],
-    KEY_W : ["w", "W"],
-    KEY_X : ["x", "X"],
-    KEY_Y : ["y", "Y"],
-    KEY_Z : ["z", "Z"],
-    # numbers
-    KEY_0 : ["0", ")"],
-    KEY_1 : ["1", "!"],
-    KEY_2 : ["2", "@"],
-    KEY_3 : ["3", "#"],
-    KEY_4 : ["4", "$"],
-    KEY_5 : ["5", "%"],
-    KEY_6 : ["6", "^"],
-    KEY_7 : ["7", "&"],
-    KEY_8 : ["8", "*"],
-    KEY_9 : ["9", "("],
-    # symbols
-    KEY_MINUS        : ["-", "_"],
-    KEY_EQUAL        : ["=", "+"],
-    KEY_BRACKETLEFT  : ["[", "{"],
-    KEY_BRACKETRIGHT : ["]", "}"],
-    KEY_BACKSLASH    : ["\\", "|"],
-    KEY_SEMICOLON    : [";", ":"],
-    KEY_APOSTROPHE   : ["'", "\""],
-    KEY_SLASH        : ["/", "?"],
-    KEY_COMMA        : [",", "<"],
-    KEY_PERIOD       : [".", ">"],
-    KEY_QUOTELEFT    : ["`", "~"],
-    # special
-    KEY_SPACE : [" ", " "],
 }

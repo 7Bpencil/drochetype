@@ -30,3 +30,59 @@ var english_bigrams: PackedStringArray
 var english_trigrams: PackedStringArray
 var english_words: Dictionary
 var test_sizes: Dictionary
+var keys: Dictionary
+
+const keys_array: Array[Key] = [
+    # alphabet
+    KEY_A,
+    KEY_B,
+    KEY_C,
+    KEY_D,
+    KEY_E,
+    KEY_F,
+    KEY_G,
+    KEY_H,
+    KEY_I,
+    KEY_J,
+    KEY_K,
+    KEY_L,
+    KEY_M,
+    KEY_N,
+    KEY_O,
+    KEY_P,
+    KEY_Q,
+    KEY_R,
+    KEY_S,
+    KEY_T,
+    KEY_U,
+    KEY_V,
+    KEY_W,
+    KEY_X,
+    KEY_Y,
+    KEY_Z,
+    # numbers
+    KEY_0,
+    KEY_1,
+    KEY_2,
+    KEY_3,
+    KEY_4,
+    KEY_5,
+    KEY_6,
+    KEY_7,
+    KEY_8,
+    KEY_9,
+    # symbols
+    KEY_MINUS,
+    KEY_EQUAL,
+    KEY_BRACKETLEFT,
+    KEY_BRACKETRIGHT,
+    KEY_BACKSLASH,
+    KEY_SEMICOLON,
+    KEY_APOSTROPHE,
+    KEY_SLASH,
+    KEY_COMMA,
+    KEY_PERIOD,
+    KEY_QUOTELEFT,
+    # special
+    KEY_SPACE,
+]
