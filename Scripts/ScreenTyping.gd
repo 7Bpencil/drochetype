@@ -331,8 +331,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _process(delta):
-    var time = Time.get_ticks_msec()
     if is_running and hit_first_letter and not is_finished:
+        var time = Time.get_ticks_msec()
         _timer_set_time(time - start_test_time)
 
 
