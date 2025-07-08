@@ -56,6 +56,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("6_1p5hy")
 timer = NodePath("Timer")
 timer_setting_waiting = ExtResource("9_h1m7h")
@@ -79,9 +80,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -390.0
-offset_top = -209.0
+offset_top = -190.0
 offset_right = -350.0
-offset_bottom = -169.0
+offset_bottom = -150.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -93,58 +94,26 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -100.0
-offset_top = -306.0
+offset_top = -318.0
 offset_right = 100.0
-offset_bottom = -246.0
+offset_bottom = -258.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "00:00"
 label_settings = ExtResource("9_h1m7h")
 horizontal_alignment = 1
 
-[node name="ScreenResult" type="Control" parent="." node_paths=PackedStringArray("label_wpm", "label_cpm", "label_accuracy_real")]
+[node name="ScreenResult" type="Control" parent="." node_paths=PackedStringArray("label_wpm", "label_accuracy_real")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("10_346fj")
 label_wpm = NodePath("label_wpm_value")
-label_cpm = NodePath("label_cpm_value")
 label_accuracy_real = NodePath("label_acc_real_value")
-
-[node name="label_cpm" type="Label" parent="ScreenResult"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -391.0
-offset_top = -332.0
-offset_right = -191.0
-offset_bottom = -301.0
-grow_horizontal = 2
-grow_vertical = 2
-text = "cpm"
-label_settings = SubResource("LabelSettings_dtese")
-
-[node name="label_cpm_value" type="Label" parent="ScreenResult"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -391.0
-offset_top = -306.0
-offset_right = -191.0
-offset_bottom = -244.0
-grow_horizontal = 2
-grow_vertical = 2
-text = "3000"
-label_settings = SubResource("LabelSettings_d1t63")
 
 [node name="label_wpm" type="Label" parent="ScreenResult"]
 layout_mode = 1
@@ -154,9 +123,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -225.0
-offset_top = -332.0
+offset_top = -344.0
 offset_right = -25.0
-offset_bottom = -301.0
+offset_bottom = -313.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "wpm"
@@ -170,11 +139,14 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -225.0
-offset_top = -306.0
+offset_top = -318.0
 offset_right = -25.0
-offset_bottom = -244.0
+offset_bottom = -256.0
 grow_horizontal = 2
 grow_vertical = 2
+tooltip_text = "500 cpm"
+mouse_filter = 0
+mouse_default_cursor_shape = 16
 text = "600"
 label_settings = SubResource("LabelSettings_d1t63")
 
@@ -186,9 +158,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -32.0
-offset_top = -332.0
+offset_top = -344.0
 offset_right = 168.0
-offset_bottom = -301.0
+offset_bottom = -313.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "time"
@@ -202,9 +174,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = 133.0
-offset_top = -332.0
+offset_top = -344.0
 offset_right = 633.0
-offset_bottom = -301.0
+offset_bottom = -313.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "acc"
@@ -218,9 +190,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = 133.0
-offset_top = -306.0
+offset_top = -318.0
 offset_right = 633.0
-offset_bottom = -246.0
+offset_bottom = -258.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "100%"
@@ -233,37 +205,37 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("4_grg3l")
-test_language_foldable = NodePath("TestSettings/TestLanguage")
-test_language = NodePath("TestSettings/TestLanguage/ItemList")
-test_type_foldable = NodePath("TestSettings/TestType")
-test_type = NodePath("TestSettings/TestType/ItemList")
-words_rarity_foldable = NodePath("TestSettings/WordsRarity")
-words_rarity = NodePath("TestSettings/WordsRarity/ItemList")
-include_letter_foldable = NodePath("TestSettings/IncludeLetter")
-include_letter = NodePath("TestSettings/IncludeLetter/ItemList")
-test_size_foldable = NodePath("TestSettings/TestSize")
-test_size = NodePath("TestSettings/TestSize/ItemList")
+test_language_foldable = NodePath("Settings/TestLanguage")
+test_language = NodePath("Settings/TestLanguage/ItemList")
+test_type_foldable = NodePath("Settings/TestType")
+test_type = NodePath("Settings/TestType/ItemList")
+words_rarity_foldable = NodePath("Settings/WordsRarity")
+words_rarity = NodePath("Settings/WordsRarity/ItemList")
+include_letter_foldable = NodePath("Settings/IncludeLetter")
+include_letter = NodePath("Settings/IncludeLetter/ItemList")
+test_size_foldable = NodePath("Settings/TestSize")
+test_size = NodePath("Settings/TestSize/ItemList")
 
-[node name="TestSettings" type="VBoxContainer" parent="ScreenMain"]
+[node name="Settings" type="HBoxContainer" parent="ScreenMain"]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = 453.0
-offset_top = 151.0
-offset_right = 603.0
-offset_bottom = 390.0
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 115.0
+offset_bottom = 146.0
 grow_horizontal = 2
+alignment = 1
 
-[node name="TestLanguage" type="FoldableContainer" parent="ScreenMain/TestSettings"]
+[node name="TestLanguage" type="FoldableContainer" parent="ScreenMain/Settings"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 focus_mode = 0
 folded = true
 title = "test language"
 foldable_group = ExtResource("14_1p5hy")
 
-[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/TestLanguage"]
+[node name="ItemList" type="ItemList" parent="ScreenMain/Settings/TestLanguage"]
 visible = false
 layout_mode = 2
 allow_search = false
@@ -274,14 +246,15 @@ item_0/text = "numbers"
 item_1/text = "english"
 item_2/text = "russian"
 
-[node name="TestType" type="FoldableContainer" parent="ScreenMain/TestSettings"]
+[node name="TestType" type="FoldableContainer" parent="ScreenMain/Settings"]
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 focus_mode = 0
 folded = true
 title = "test type"
 foldable_group = ExtResource("14_1p5hy")
 
-[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/TestType"]
+[node name="ItemList" type="ItemList" parent="ScreenMain/Settings/TestType"]
 visible = false
 layout_mode = 2
 allow_search = false
@@ -292,14 +265,15 @@ item_0/text = "bigrams"
 item_1/text = "trigrams"
 item_2/text = "words"
 
-[node name="WordsRarity" type="FoldableContainer" parent="ScreenMain/TestSettings"]
+[node name="WordsRarity" type="FoldableContainer" parent="ScreenMain/Settings"]
+custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
 focus_mode = 0
 folded = true
 title = "words rarity"
 foldable_group = ExtResource("14_1p5hy")
 
-[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/WordsRarity"]
+[node name="ItemList" type="ItemList" parent="ScreenMain/Settings/WordsRarity"]
 visible = false
 layout_mode = 2
 allow_search = false
@@ -311,14 +285,15 @@ item_1/text = "common"
 item_2/text = "rare"
 item_3/text = "very rare"
 
-[node name="IncludeLetter" type="FoldableContainer" parent="ScreenMain/TestSettings"]
+[node name="IncludeLetter" type="FoldableContainer" parent="ScreenMain/Settings"]
+custom_minimum_size = Vector2(145, 0)
 layout_mode = 2
 focus_mode = 0
 folded = true
 title = "filter by letter"
 foldable_group = ExtResource("14_1p5hy")
 
-[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/IncludeLetter"]
+[node name="ItemList" type="ItemList" parent="ScreenMain/Settings/IncludeLetter"]
 visible = false
 layout_mode = 2
 theme = SubResource("Theme_1p5hy")
@@ -330,14 +305,15 @@ item_count = 1
 max_columns = 7
 item_0/text = "*"
 
-[node name="TestSize" type="FoldableContainer" parent="ScreenMain/TestSettings"]
+[node name="TestSize" type="FoldableContainer" parent="ScreenMain/Settings"]
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 focus_mode = 0
 folded = true
 title = "test size"
 foldable_group = ExtResource("14_1p5hy")
 
-[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/TestSize"]
+[node name="ItemList" type="ItemList" parent="ScreenMain/Settings/TestSize"]
 visible = false
 layout_mode = 2
 allow_search = false
