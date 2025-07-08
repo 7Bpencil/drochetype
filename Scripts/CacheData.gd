@@ -35,7 +35,7 @@ func _run():
         TypingData.TestSize.VerySmall  : 1,
         TypingData.TestSize.Small      : 3,
         TypingData.TestSize.Medium     : 6,
-        TypingData.TestSize.Large      : 13,
+        TypingData.TestSize.Large      : 12,
     }
 
     typing_data.keycodes = {}
