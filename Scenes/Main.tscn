@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://0kcwtttcr5bt"]
+[gd_scene load_steps=18 format=3 uid="uid://0kcwtttcr5bt"]
 
 [ext_resource type="LabelSettings" uid="uid://duxx0llfqminq" path="res://LabelSettings/goal.tres" id="2_idj7w"]
 [ext_resource type="Script" uid="uid://wcffn5nhpmis" path="res://Scripts/Main.gd" id="3_pbw6q"]
@@ -23,6 +23,10 @@ font_size = 29
 font = ExtResource("5_frkhe")
 font_size = 59
 font_color = Color(0.8862745, 0.7176471, 0.078431375, 1)
+
+[sub_resource type="Theme" id="Theme_1p5hy"]
+ItemList/font_sizes/font_size = 26
+ItemList/fonts/font = ExtResource("5_frkhe")
 
 [node name="SceneRoot" type="Control" node_paths=PackedStringArray("screen_main", "screen_typing", "screen_result")]
 layout_mode = 3
@@ -222,7 +226,7 @@ grow_vertical = 2
 text = "100%"
 label_settings = SubResource("LabelSettings_d1t63")
 
-[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("test_language_foldable", "test_language", "test_type_foldable", "test_type", "words_rarity_foldable", "words_rarity", "test_size_foldable", "test_size")]
+[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("test_language_foldable", "test_language", "test_type_foldable", "test_type", "words_rarity_foldable", "words_rarity", "include_letter_foldable", "include_letter", "test_size_foldable", "test_size")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -236,6 +240,8 @@ test_type_foldable = NodePath("TestSettings/TestType")
 test_type = NodePath("TestSettings/TestType/ItemList")
 words_rarity_foldable = NodePath("TestSettings/WordsRarity")
 words_rarity = NodePath("TestSettings/WordsRarity/ItemList")
+include_letter_foldable = NodePath("TestSettings/IncludeLetter")
+include_letter = NodePath("TestSettings/IncludeLetter/ItemList")
 test_size_foldable = NodePath("TestSettings/TestSize")
 test_size = NodePath("TestSettings/TestSize/ItemList")
 
@@ -244,10 +250,10 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = 455.0
+offset_left = 453.0
 offset_top = 151.0
-offset_right = 595.0
-offset_bottom = 252.0
+offset_right = 603.0
+offset_bottom = 390.0
 grow_horizontal = 2
 
 [node name="TestLanguage" type="FoldableContainer" parent="ScreenMain/TestSettings"]
@@ -304,6 +310,25 @@ item_0/text = "very common"
 item_1/text = "common"
 item_2/text = "rare"
 item_3/text = "very rare"
+
+[node name="IncludeLetter" type="FoldableContainer" parent="ScreenMain/TestSettings"]
+layout_mode = 2
+focus_mode = 0
+folded = true
+title = "filter by letter"
+foldable_group = ExtResource("14_1p5hy")
+
+[node name="ItemList" type="ItemList" parent="ScreenMain/TestSettings/IncludeLetter"]
+visible = false
+layout_mode = 2
+theme = SubResource("Theme_1p5hy")
+allow_search = false
+auto_width = true
+auto_height = true
+wraparound_items = false
+item_count = 1
+max_columns = 7
+item_0/text = "*"
 
 [node name="TestSize" type="FoldableContainer" parent="ScreenMain/TestSettings"]
 layout_mode = 2

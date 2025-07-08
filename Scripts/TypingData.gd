@@ -1,4 +1,4 @@
-class_name TypingData
+class_name TypingData extends Resource
 
 enum TestLanguage {
     Numbers,
@@ -26,11 +26,13 @@ enum TestSize {
     Large,
 }
 
-var numbers: Array
-var english: NaturalLanguageData
-var russian: NaturalLanguageData
-var test_sizes: Dictionary
-var keycodes: Dictionary
+@export var numbers: Array
+@export var english: NaturalLanguageData
+@export var russian: NaturalLanguageData
+@export var test_sizes: Dictionary
+@export var keycodes: Dictionary
+
+const cache_path: String = "res://data.bin"
 
 const keycodes_array: Array[Key] = [
     # alphabet

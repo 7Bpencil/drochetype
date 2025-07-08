@@ -179,22 +179,28 @@ func _generate_next_word(typing_config: TypingConfig):
 
 
 func _generate_natural_language_word(typing_config: TypingConfig, language_data: NaturalLanguageData) -> String:
-    var all_words = _get_words_corpus(typing_config, language_data)
-    var random_index = randi_range(0, all_words.size() - 1)
-    var next_word = all_words[random_index]
-    return next_word
-
-
-func _get_words_corpus(typing_config: TypingConfig, language_data: NaturalLanguageData):
     match typing_config.test_type:
         TypingData.TestType.Bigrams:
-            return language_data.bigrams
+            return _get_random_element(language_data.bigrams)
         TypingData.TestType.Trigrams:
-            return language_data.trigrams
+            return _get_random_element(language_data.trigrams)
         TypingData.TestType.Words:
-            return language_data.words[typing_config.words_rarity]
+            if typing_config.include_letter == 0:
+                return _get_random_element(language_data.words[typing_config.words_rarity])
+            else:
+                var letter = language_data.alphabet[typing_config.include_letter - 1]
+                var word_indices = language_data.words_per_letter[typing_config.words_rarity][letter]
+                if word_indices.size() == 0:
+                    return "error"
+                var word_index = _get_random_element(word_indices)
+                var word = language_data.words[typing_config.words_rarity][word_index]
+                return word
         _:
-            return language_data.bigrams
+            return "error"
+
+
+func _get_random_element(array):
+    return array[randi_range(0, array.size() - 1)]
 
 
 func _generate_numbers_word(typing_config: TypingConfig) -> String:
