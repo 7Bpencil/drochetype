@@ -220,12 +220,14 @@ test_size = NodePath("Settings/TestSize/ItemList")
 
 [node name="Settings" type="HBoxContainer" parent="ScreenMain"]
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -315.5
 offset_top = 115.0
+offset_right = 315.5
 offset_bottom = 146.0
 grow_horizontal = 2
-alignment = 1
 
 [node name="TestLanguage" type="FoldableContainer" parent="ScreenMain/Settings"]
 custom_minimum_size = Vector2(140, 0)
