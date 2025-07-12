@@ -50,6 +50,7 @@ func _on_test_language_selected(index: int):
     test_language_foldable.folded = true
     _rebuild_ui()
     generate_new_test.emit(typing_config)
+    typing_config.save()
 
 
 func _on_test_type_selected(index: int):
@@ -59,18 +60,21 @@ func _on_test_type_selected(index: int):
     test_type_foldable.folded = true
     _rebuild_ui()
     generate_new_test.emit(typing_config)
+    typing_config.save()
 
 
 func _on_words_rarity_selected(index: int):
     typing_config.words_rarity = index as TypingData.WordsRarity
     words_rarity_foldable.folded = true
     generate_new_test.emit(typing_config)
+    typing_config.save()
 
 
 func _on_include_letter_selected(index: int):
     typing_config.include_letter = index
     include_letter_foldable.folded = true
     generate_new_test.emit(typing_config)
+    typing_config.save()
 
 
 func _on_learn_letters_selected(index: int, selected: bool):
@@ -79,12 +83,14 @@ func _on_learn_letters_selected(index: int, selected: bool):
     else:
         typing_config.learn_letters.erase(index)
     generate_new_test.emit(typing_config)
+    typing_config.save()
 
 
 func _on_test_size_selected(index: int):
     typing_config.test_size = index as TypingData.TestSize
     test_size_foldable.folded = true
     generate_new_test.emit(typing_config)
+    typing_config.save()
 
 
 func _rebuild_ui():

@@ -17,28 +17,12 @@ func _ready() -> void:
     screen_typing.generate_new_test.connect(_on_restart)
     screen_typing.reset_current_test.connect(_on_reset)
 
-    var typing_data = _load_typing_data()
-    var typing_config = _load_typing_config()
+    var typing_data = TypingData.load()
+    var typing_config = TypingConfig.load()
 
     screen_typing.set_typing_data(typing_data)
     screen_main.set_data(typing_data, typing_config)
     _on_start(typing_config)
-
-
-func _load_typing_data() -> TypingData:
-    var file = FileAccess.open_compressed(TypingData.cache_path, FileAccess.READ, FileAccess.CompressionMode.COMPRESSION_ZSTD)
-    return file.get_var(true)
-
-
-func _load_typing_config() -> TypingConfig:
-    var typing_config = TypingConfig.new()
-    typing_config.test_language = TypingData.TestLanguage.English
-    typing_config.test_type = TypingData.TestType.Words
-    typing_config.words_rarity = TypingData.WordsRarity.VeryCommon
-    typing_config.include_letter = 0
-    typing_config.learn_letters = {}
-    typing_config.test_size = TypingData.TestSize.Small
-    return typing_config
 
 
 func _on_start(typing_config: TypingConfig):
