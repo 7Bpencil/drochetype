@@ -14,6 +14,7 @@
 [ext_resource type="LabelSettings" uid="uid://bxcn5ahoqe2bf" path="res://LabelSettings/timer_waiting.tres" id="9_h1m7h"]
 [ext_resource type="Script" uid="uid://d1s2yg820ksd4" path="res://Scripts/ScreenResult.gd" id="10_346fj"]
 [ext_resource type="FoldableGroup" uid="uid://c3p0xx38m8bg8" path="res://FoldableGroups/screen_main_foldable_group.tres" id="14_1p5hy"]
+[ext_resource type="Theme" uid="uid://bd8omdk4k5nhq" path="res://Themes/alphabet_item_list.tres" id="15_h1m7h"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_dtese"]
 font = ExtResource("5_frkhe")
@@ -23,10 +24,6 @@ font_size = 29
 font = ExtResource("5_frkhe")
 font_size = 59
 font_color = Color(0.8862745, 0.7176471, 0.078431375, 1)
-
-[sub_resource type="Theme" id="Theme_1p5hy"]
-ItemList/font_sizes/font_size = 26
-ItemList/fonts/font = ExtResource("5_frkhe")
 
 [node name="SceneRoot" type="Control" node_paths=PackedStringArray("screen_main", "screen_typing", "screen_result")]
 layout_mode = 3
@@ -198,7 +195,7 @@ grow_vertical = 2
 text = "100%"
 label_settings = SubResource("LabelSettings_d1t63")
 
-[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("test_language_foldable", "test_language", "test_type_foldable", "test_type", "words_rarity_foldable", "words_rarity", "include_letter_foldable", "include_letter", "test_size_foldable", "test_size")]
+[node name="ScreenMain" type="Control" parent="." node_paths=PackedStringArray("test_language_foldable", "test_language", "test_type_foldable", "test_type", "words_rarity_foldable", "words_rarity", "include_letter_foldable", "include_letter", "learn_letters_foldable", "learn_letters", "test_size_foldable", "test_size")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -215,6 +212,8 @@ words_rarity_foldable = NodePath("Settings/WordsRarity")
 words_rarity = NodePath("Settings/WordsRarity/ItemList")
 include_letter_foldable = NodePath("Settings/IncludeLetter")
 include_letter = NodePath("Settings/IncludeLetter/ItemList")
+learn_letters_foldable = NodePath("Settings/LearnLetters")
+learn_letters = NodePath("Settings/LearnLetters/ItemList")
 test_size_foldable = NodePath("Settings/TestSize")
 test_size = NodePath("Settings/TestSize/ItemList")
 
@@ -262,10 +261,11 @@ layout_mode = 2
 allow_search = false
 auto_width = true
 auto_height = true
-item_count = 3
-item_0/text = "bigrams"
-item_1/text = "trigrams"
-item_2/text = "words"
+item_count = 4
+item_0/text = "letters"
+item_1/text = "bigrams"
+item_2/text = "trigrams"
+item_3/text = "words"
 
 [node name="WordsRarity" type="FoldableContainer" parent="ScreenMain/Settings"]
 custom_minimum_size = Vector2(130, 0)
@@ -298,14 +298,30 @@ foldable_group = ExtResource("14_1p5hy")
 [node name="ItemList" type="ItemList" parent="ScreenMain/Settings/IncludeLetter"]
 visible = false
 layout_mode = 2
-theme = SubResource("Theme_1p5hy")
+theme = ExtResource("15_h1m7h")
 allow_search = false
 auto_width = true
 auto_height = true
 wraparound_items = false
-item_count = 1
 max_columns = 7
-item_0/text = "*"
+
+[node name="LearnLetters" type="FoldableContainer" parent="ScreenMain/Settings"]
+custom_minimum_size = Vector2(145, 0)
+layout_mode = 2
+focus_mode = 0
+folded = true
+title = "select letters"
+foldable_group = ExtResource("14_1p5hy")
+
+[node name="ItemList" type="ItemList" parent="ScreenMain/Settings/LearnLetters"]
+visible = false
+layout_mode = 2
+theme = ExtResource("15_h1m7h")
+select_mode = 2
+allow_search = false
+auto_width = true
+auto_height = true
+max_columns = 7
 
 [node name="TestSize" type="FoldableContainer" parent="ScreenMain/Settings"]
 custom_minimum_size = Vector2(100, 0)

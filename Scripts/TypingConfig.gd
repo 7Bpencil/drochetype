@@ -5,4 +5,9 @@ var test_language: TypingData.TestLanguage
 var test_type: TypingData.TestType
 var words_rarity: TypingData.WordsRarity
 var include_letter: int
+var learn_letters: Dictionary
 var test_size: TypingData.TestSize
+
+
+func on_test_completion():
+    pass

@@ -22,6 +22,7 @@ signal reset_current_test
 
 
 var typing_data: TypingData
+var test_generator: TestGenerator
 var max_letters_count: int
 var letters: Array[Control] = []
 var letter_size: Vector2
@@ -63,6 +64,7 @@ func _ready() -> void:
 
 func set_typing_data(data: TypingData):
     typing_data = data
+    test_generator = TestGenerator.new(typing_data)
 
 
 func start_test(new_typing_config: TypingConfig):
@@ -127,6 +129,8 @@ func reset_test():
 
 
 func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
+    test_generator.generate_next_test(typing_config)
+
     var test_max_lines_count: int = min(max_lines, typing_data.test_sizes[typing_config.test_size])
 
     var result_lines: Array[Array] = []
@@ -137,7 +141,7 @@ func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
     var test_current_letters_count: int = 0
 
     while true:
-        var next_word = _generate_next_word(typing_config)
+        var next_word = test_generator.get_next_word(typing_config)
         var next_word_length = next_word.length() + 1 # put space after every word
 
         if test_current_letters_count + next_word_length > max_letters_count:
@@ -164,57 +168,6 @@ func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
     result.letters_count = test_current_letters_count - 1 # remove space after last word
 
     return result
-
-
-func _generate_next_word(typing_config: TypingConfig):
-    match typing_config.test_language:
-        TypingData.TestLanguage.English:
-            return _generate_natural_language_word(typing_config, typing_data.english)
-        TypingData.TestLanguage.Russian:
-            return _generate_natural_language_word(typing_config, typing_data.russian)
-        TypingData.TestLanguage.Numbers:
-            return _generate_numbers_word(typing_config)
-        _:
-            return "error"
-
-
-func _generate_natural_language_word(typing_config: TypingConfig, language_data: NaturalLanguageData) -> String:
-    match typing_config.test_type:
-        TypingData.TestType.Bigrams:
-            return _get_random_element(language_data.bigrams)
-        TypingData.TestType.Trigrams:
-            return _get_random_element(language_data.trigrams)
-        TypingData.TestType.Words:
-            if typing_config.include_letter == 0:
-                return _get_random_element(language_data.words[typing_config.words_rarity])
-            else:
-                var letter = language_data.alphabet[typing_config.include_letter - 1]
-                var word_indices = language_data.words_per_letter[typing_config.words_rarity][letter]
-                if word_indices.size() == 0:
-                    return "error"
-                var word_index = _get_random_element(word_indices)
-                var word = language_data.words[typing_config.words_rarity][word_index]
-                return word
-        _:
-            return "error"
-
-
-func _get_random_element(array):
-    return array[randi_range(0, array.size() - 1)]
-
-
-func _generate_numbers_word(typing_config: TypingConfig) -> String:
-    var word_length = 6
-    var numbers = typing_data.numbers
-    var result: Array[String] = []
-    result.resize(word_length)
-    for i in range(word_length):
-        var i_looped = i % numbers.size()
-        if i_looped == 0:
-            numbers.shuffle()
-        result[i] = numbers[i_looped]
-
-    return "".join(result)
 
 
 func _spawn_cursor():
@@ -337,6 +290,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
             var result = TypingResult.new(test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
             _timer_set_time(test_time)
             _timer_set_state(TimerState.Finished)
+            typing_config.on_test_completion()
             show_test_result.emit(result)
 
         previous_key_time = current_key_time

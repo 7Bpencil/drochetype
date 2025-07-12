@@ -1,0 +1,7 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://bd8omdk4k5nhq"]
+
+[ext_resource type="FontFile" uid="uid://3rpi67lc1mec" path="res://Fonts/Anonymous_Pro/AnonymousPro-Regular.ttf" id="1_31ko4"]
+
+[resource]
+ItemList/font_sizes/font_size = 26
+ItemList/fonts/font = ExtResource("1_31ko4")

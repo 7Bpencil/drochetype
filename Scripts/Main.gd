@@ -36,6 +36,7 @@ func _load_typing_config() -> TypingConfig:
     typing_config.test_type = TypingData.TestType.Words
     typing_config.words_rarity = TypingData.WordsRarity.VeryCommon
     typing_config.include_letter = 0
+    typing_config.learn_letters = {}
     typing_config.test_size = TypingData.TestSize.Small
     return typing_config
 

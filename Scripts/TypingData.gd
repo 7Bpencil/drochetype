@@ -7,6 +7,7 @@ enum TestLanguage {
 }
 
 enum TestType {
+    Letters,
     Bigrams,
     Trigrams,
     Words,
