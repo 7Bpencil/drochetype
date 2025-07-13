@@ -101,6 +101,7 @@ static func cache() -> void:
 
     var english = NaturalLanguageData.new()
     english.alphabet                      = _load_language("res://Data/english_alphabet.txt")
+    english.alphabet_dict                 = _build_alphabet_dict(english.alphabet)
     english.bigrams                       = _load_language("res://Data/english_bigrams.txt")
     english.trigrams                      = _load_language("res://Data/english_trigrams.txt")
     english.words = {
@@ -113,6 +114,7 @@ static func cache() -> void:
 
     var russian = NaturalLanguageData.new()
     russian.alphabet                      = _load_language("res://Data/russian_alphabet.txt")
+    russian.alphabet_dict                 = _build_alphabet_dict(russian.alphabet)
     russian.bigrams                       = _load_language("res://Data/russian_bigrams.txt")
     russian.trigrams                      = _load_language("res://Data/russian_trigrams.txt")
     russian.words = {
@@ -162,6 +164,15 @@ static func _get_line_endings(file_content: String):
     if first_few_words.contains(unix_endings):
         return unix_endings
     return ""
+
+
+static func _build_alphabet_dict(alphabet: PackedStringArray):
+    var result = {}
+    for i in range(alphabet.size()):
+        var letter = alphabet[i]
+        result[letter] = i
+
+    return result
 
 
 static func _filter_words(words: Dictionary, alphabet: PackedStringArray):

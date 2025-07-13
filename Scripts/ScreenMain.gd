@@ -15,7 +15,7 @@ class_name ScreenMain extends Node
 @export var test_size: ItemList
 
 
-signal generate_new_test(typing_config: TypingConfig)
+signal generate_new_test()
 
 
 var typing_data: TypingData
@@ -42,8 +42,7 @@ func _on_test_language_selected(index: int):
     typing_config.include_letter = 0
     test_language_foldable.folded = true
     _rebuild_ui()
-    generate_new_test.emit(typing_config)
-    typing_config.save()
+    generate_new_test.emit()
 
 
 func _on_test_type_selected(index: int):
@@ -51,22 +50,19 @@ func _on_test_type_selected(index: int):
     typing_config.include_letter = 0
     test_type_foldable.folded = true
     _rebuild_ui()
-    generate_new_test.emit(typing_config)
-    typing_config.save()
+    generate_new_test.emit()
 
 
 func _on_words_rarity_selected(index: int):
     typing_config.words_rarity = index as TypingData.WordsRarity
     words_rarity_foldable.folded = true
-    generate_new_test.emit(typing_config)
-    typing_config.save()
+    generate_new_test.emit()
 
 
 func _on_include_letter_selected(index: int):
     typing_config.include_letter = index
     include_letter_foldable.folded = true
-    generate_new_test.emit(typing_config)
-    typing_config.save()
+    generate_new_test.emit()
 
 
 func _on_learn_letters_selected(index: int, selected: bool):
@@ -75,15 +71,13 @@ func _on_learn_letters_selected(index: int, selected: bool):
         letters[index] = LearnLetterData.new()
     else:
         letters.erase(index)
-    generate_new_test.emit(typing_config)
-    typing_config.save()
+    generate_new_test.emit()
 
 
 func _on_test_size_selected(index: int):
     typing_config.test_size = index as TypingData.TestSize
     test_size_foldable.folded = true
-    generate_new_test.emit(typing_config)
-    typing_config.save()
+    generate_new_test.emit()
 
 
 func _rebuild_ui():

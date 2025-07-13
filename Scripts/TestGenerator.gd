@@ -2,19 +2,21 @@ class_name TestGenerator
 
 
 var typing_data: TypingData
+var typing_config: TypingConfig
 var available_word_letters: Dictionary
 var available_word_tokens: Array
 var word_builder: Array
 
 
-func _init(data: TypingData):
+func _init(data: TypingData, config: TypingConfig):
     typing_data = data
+    typing_config = config
     available_word_letters = {}
     available_word_tokens = []
     word_builder = []
 
 
-func generate_next_test(typing_config: TypingConfig) -> void:
+func generate_next_test() -> void:
     if typing_config.test_language == TypingData.TestLanguage.Numbers:
         return
     if typing_config.test_type == TypingData.TestType.Letters:
@@ -63,13 +65,13 @@ func _collect_avalilable_word_tokens(letter_indices: Dictionary, alphabet: Packe
             available_word_tokens.append(trigram)
 
 
-func get_next_word(typing_config: TypingConfig) -> String:
+func get_next_word() -> String:
     if typing_config.test_language == TypingData.TestLanguage.Numbers:
-        return _get_next_numbers_word(typing_config)
-    return _get_next_natural_language_word(typing_config, typing_data.languages[typing_config.test_language])
+        return _get_next_numbers_word()
+    return _get_next_natural_language_word(typing_data.languages[typing_config.test_language])
 
 
-func _get_next_natural_language_word(typing_config: TypingConfig, language_data: NaturalLanguageData) -> String:
+func _get_next_natural_language_word(language_data: NaturalLanguageData) -> String:
     match typing_config.test_type:
         TypingData.TestType.Letters:
             return _generate_word_from_available_word_tokens()
@@ -110,7 +112,7 @@ func _generate_word_from_available_word_tokens() -> String:
     return "".join(word_builder)
 
 
-func _get_next_numbers_word(typing_config: TypingConfig) -> String:
+func _get_next_numbers_word() -> String:
     var word_length = 6
     var numbers = typing_data.languages[TypingData.TestLanguage.Numbers]
 

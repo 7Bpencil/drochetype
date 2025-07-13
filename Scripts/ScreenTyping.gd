@@ -17,11 +17,13 @@ class_name ScreenTyping extends Node
 
 
 signal show_test_result(result: TypingResult)
-signal generate_new_test(typing_config: TypingConfig)
-signal reset_current_test
+signal generate_new_test()
+signal reset_current_test()
 
 
 var typing_data: TypingData
+var typing_config: TypingConfig
+
 var test_generator: TestGenerator
 var max_letters_count: int
 var letters: Array[Control] = []
@@ -30,8 +32,6 @@ var cursor: Control
 var cursor_size: Vector2
 
 var goal_letters: PackedStringArray = []
-var letter_times: Array[int] = []
-var letter_results: Array[bool] = []
 
 var is_shift_held: bool = false
 
@@ -45,7 +45,6 @@ var start_test_time: int = 0
 var previous_key_time: int = 0
 var timer_previous_seconds: int = -1
 
-var typing_config: TypingConfig
 var test_layout: TypingLayout
 
 
@@ -54,26 +53,22 @@ func _ready() -> void:
 
     letters.resize(max_letters_count)
     goal_letters.resize(max_letters_count)
-    letter_times.resize(max_letters_count)
-    letter_results.resize(max_letters_count)
 
     _spawn_cursor()
     for i in range(max_letters_count):
         _spawn_letter(i)
 
 
-func set_typing_data(data: TypingData):
+func set_data(data: TypingData, config: TypingConfig):
     typing_data = data
-    test_generator = TestGenerator.new(typing_data)
+    typing_config = config
+    test_generator = TestGenerator.new(typing_data, typing_config)
 
 
-func start_test(new_typing_config: TypingConfig):
-    typing_config = new_typing_config
-    test_layout = _generate_new_words(typing_config)
+func start_test():
+    test_layout = _generate_new_words()
 
     goal_letters.resize(test_layout.letters_count)
-    letter_times.resize(test_layout.letters_count)
-    letter_results.resize(test_layout.letters_count)
 
     hit_first_letter = false
     input_letter_index = 0
@@ -128,8 +123,8 @@ func reset_test():
     is_finished = false
 
 
-func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
-    test_generator.generate_next_test(typing_config)
+func _generate_new_words() -> TypingLayout:
+    test_generator.generate_next_test()
 
     var test_max_lines_count: int = min(max_lines, typing_data.test_sizes[typing_config.test_size])
 
@@ -141,7 +136,7 @@ func _generate_new_words(typing_config: TypingConfig) -> TypingLayout:
     var test_current_letters_count: int = 0
 
     while true:
-        var next_word = test_generator.get_next_word(typing_config)
+        var next_word = test_generator.get_next_word()
         var next_word_length = next_word.length() + 1 # put space after every word
 
         if test_current_letters_count + next_word_length > max_letters_count:
@@ -234,12 +229,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
     if event_keycode == KEY_SPACE and event.is_pressed() and is_finished:
         is_running = false
         is_finished = false
-        generate_new_test.emit(typing_config)
+        generate_new_test.emit()
         return
 
     if event_keycode == KEY_ESCAPE and event.is_pressed():
         if input_letter_index == 0:
-            generate_new_test.emit(typing_config)
+            generate_new_test.emit()
         else:
             reset_current_test.emit()
 
@@ -270,27 +265,28 @@ func _unhandled_key_input(event: InputEvent) -> void:
         var goal_char = goal_letters[input_letter_index]
         var letter = letters[input_letter_index]
         var is_correct = key_char == goal_char
-
-        letter_times[input_letter_index] = current_key_time - previous_key_time
-        letter_results[input_letter_index] = is_correct
-
+        var key_time = current_key_time - previous_key_time
         real_keys_count += 1
-        if not is_correct:
+
+        if is_correct:
+            typing_config.on_hit(goal_char, key_time, typing_data)
+        else:
+            typing_config.on_mistake(goal_char, key_time, typing_data)
             real_mistakes_count += 1
+
         if event_keycode == KEY_SPACE and not is_correct:
             letter.label_settings = letter_settings_wrong
             letter.text = "_"
         else:
             letter.label_settings = letter_settings_correct if is_correct else letter_settings_wrong
             letter.text = key_char
+
         if input_letter_index == goal_letters.size() - 1 and is_correct:
             is_finished = true
-            var end_test_time = current_key_time
-            var test_time = end_test_time - start_test_time
-            var result = TypingResult.new(test_time, real_keys_count, real_mistakes_count, letter_times, letter_results)
+            var test_time = current_key_time - start_test_time
+            var result = TypingResult.new(test_time, real_keys_count, real_mistakes_count)
             _timer_set_time(test_time)
             _timer_set_state(TimerState.Finished)
-            typing_config.on_test_completion()
             show_test_result.emit(result)
 
         previous_key_time = current_key_time

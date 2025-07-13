@@ -1,5 +1,5 @@
 class_name LearnLetterData
 
 
-var accuracy: float
-var speed: float
+var hits_count: int
+var mistakes_count: int
