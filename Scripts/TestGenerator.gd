@@ -14,19 +14,13 @@ func _init(data: TypingData):
     word_builder = []
 
 
-func generate_next_test(typing_config: TypingConfig):
-    match typing_config.test_language:
-        TypingData.TestLanguage.English:
-            _generate_next_natural_language_test(typing_config, typing_data.english)
-        TypingData.TestLanguage.Russian:
-            _generate_next_natural_language_test(typing_config, typing_data.russian)
-        _:
-            pass
-
-
-func _generate_next_natural_language_test(typing_config: TypingConfig, language_data: NaturalLanguageData):
+func generate_next_test(typing_config: TypingConfig) -> void:
+    if typing_config.test_language == TypingData.TestLanguage.Numbers:
+        return
     if typing_config.test_type == TypingData.TestType.Letters:
-        _collect_avalilable_word_tokens(typing_config.learn_letters, language_data.alphabet, language_data.bigrams, language_data.trigrams)
+        var letters = typing_config.learn_letters[typing_config.test_language]
+        var language_data = typing_data.languages[typing_config.test_language]
+        _collect_avalilable_word_tokens(letters, language_data.alphabet, language_data.bigrams, language_data.trigrams)
 
 
 func _collect_avalilable_word_tokens(letter_indices: Dictionary, alphabet: PackedStringArray, bigrams: PackedStringArray, trigrams: PackedStringArray):
@@ -69,16 +63,10 @@ func _collect_avalilable_word_tokens(letter_indices: Dictionary, alphabet: Packe
             available_word_tokens.append(trigram)
 
 
-func get_next_word(typing_config: TypingConfig):
-    match typing_config.test_language:
-        TypingData.TestLanguage.English:
-            return _get_next_natural_language_word(typing_config, typing_data.english)
-        TypingData.TestLanguage.Russian:
-            return _get_next_natural_language_word(typing_config, typing_data.russian)
-        TypingData.TestLanguage.Numbers:
-            return _get_next_numbers_word(typing_config)
-        _:
-            return "error"
+func get_next_word(typing_config: TypingConfig) -> String:
+    if typing_config.test_language == TypingData.TestLanguage.Numbers:
+        return _get_next_numbers_word(typing_config)
+    return _get_next_natural_language_word(typing_config, typing_data.languages[typing_config.test_language])
 
 
 func _get_next_natural_language_word(typing_config: TypingConfig, language_data: NaturalLanguageData) -> String:
@@ -124,7 +112,7 @@ func _generate_word_from_available_word_tokens() -> String:
 
 func _get_next_numbers_word(typing_config: TypingConfig) -> String:
     var word_length = 6
-    var numbers = typing_data.numbers
+    var numbers = typing_data.languages[TypingData.TestLanguage.Numbers]
 
     word_builder.clear()
     word_builder.resize(word_length)

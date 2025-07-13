@@ -27,9 +27,7 @@ enum TestSize {
     Large,
 }
 
-@export var numbers: Array
-@export var english: NaturalLanguageData
-@export var russian: NaturalLanguageData
+@export var languages: Dictionary
 @export var test_sizes: Dictionary
 @export var keycodes: Dictionary
 
@@ -99,37 +97,43 @@ static func load() -> TypingData:
 static func cache() -> void:
     var typing_data = TypingData.new()
 
-    typing_data.numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    var numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
-    typing_data.english = NaturalLanguageData.new()
-    typing_data.english.alphabet          = _load_language("res://Data/english_alphabet.txt")
-    typing_data.english.bigrams           = _load_language("res://Data/english_bigrams.txt")
-    typing_data.english.trigrams          = _load_language("res://Data/english_trigrams.txt")
-    typing_data.english.words = {
+    var english = NaturalLanguageData.new()
+    english.alphabet                      = _load_language("res://Data/english_alphabet.txt")
+    english.bigrams                       = _load_language("res://Data/english_bigrams.txt")
+    english.trigrams                      = _load_language("res://Data/english_trigrams.txt")
+    english.words = {
         TypingData.WordsRarity.VeryCommon : _load_language("res://Data/english_200.txt"),
         TypingData.WordsRarity.Common     : _load_language("res://Data/english_1k.txt"),
         TypingData.WordsRarity.Rare       : _load_language("res://Data/english_25k.txt"),
         TypingData.WordsRarity.VeryRare   : _load_language("res://Data/english_450k.txt"),
     }
-    typing_data.english.words_per_letter  = _filter_words(typing_data.english.words, typing_data.english.alphabet)
+    english.words_per_letter              = _filter_words(english.words, english.alphabet)
 
-    typing_data.russian = NaturalLanguageData.new()
-    typing_data.russian.alphabet          = _load_language("res://Data/russian_alphabet.txt")
-    typing_data.russian.bigrams           = _load_language("res://Data/russian_bigrams.txt")
-    typing_data.russian.trigrams          = _load_language("res://Data/russian_trigrams.txt")
-    typing_data.russian.words = {
+    var russian = NaturalLanguageData.new()
+    russian.alphabet                      = _load_language("res://Data/russian_alphabet.txt")
+    russian.bigrams                       = _load_language("res://Data/russian_bigrams.txt")
+    russian.trigrams                      = _load_language("res://Data/russian_trigrams.txt")
+    russian.words = {
         TypingData.WordsRarity.VeryCommon : _load_language("res://Data/russian_200.txt"),
         TypingData.WordsRarity.Common     : _load_language("res://Data/russian_1k.txt"),
         TypingData.WordsRarity.Rare       : _load_language("res://Data/russian_25k.txt"),
         TypingData.WordsRarity.VeryRare   : _load_language("res://Data/russian_375k.txt"),
     }
-    typing_data.russian.words_per_letter  = _filter_words(typing_data.russian.words, typing_data.russian.alphabet)
+    russian.words_per_letter              = _filter_words(russian.words, russian.alphabet)
+
+    typing_data.languages = {
+        TypingData.TestLanguage.Numbers : numbers,
+        TypingData.TestLanguage.English : english,
+        TypingData.TestLanguage.Russian : russian,
+    }
 
     typing_data.test_sizes = {
-        TypingData.TestSize.VerySmall  : 1,
-        TypingData.TestSize.Small      : 3,
-        TypingData.TestSize.Medium     : 6,
-        TypingData.TestSize.Large      : 12,
+        TypingData.TestSize.VerySmall : 1,
+        TypingData.TestSize.Small     : 3,
+        TypingData.TestSize.Medium    : 6,
+        TypingData.TestSize.Large     : 12,
     }
 
     typing_data.keycodes = {}
