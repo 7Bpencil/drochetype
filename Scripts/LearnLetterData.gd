@@ -16,7 +16,7 @@ func push_new_value(result: bool, time: int):
     _push_new_value_to_stack(results, result)
     if result:
         _push_new_value_to_stack(times, time) # we don't care about timing if it was mistake
-        
+
 
 func _push_new_value_to_stack(stack, value):
     if stack.size() < max_window_width:
@@ -24,7 +24,7 @@ func _push_new_value_to_stack(stack, value):
     else:
         stack.remove_at(0)
         stack.append(value)
-    
+
 
 func get_average_accuracy() -> float:
     if results.size() == 0:
