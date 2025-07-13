@@ -19,6 +19,7 @@ func _ready() -> void:
     screen_typing.show_test_result.connect(_on_end)
     screen_typing.generate_new_test.connect(_on_restart)
     screen_typing.reset_current_test.connect(_on_reset)
+    screen_typing.update_letter_stats.connect(screen_main.update_letter_stats)
 
     typing_data = TypingData.load()
     typing_config = TypingConfig.load()

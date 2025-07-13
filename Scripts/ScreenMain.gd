@@ -66,11 +66,14 @@ func _on_include_letter_selected(index: int):
 
 
 func _on_learn_letters_selected(index: int, selected: bool):
-    var letters = typing_config.learn_letters[typing_config.test_language]
+    var letter_indices = typing_config.learn_letters[typing_config.test_language]
     if selected:
-        letters[index] = LearnLetterData.new()
+        letter_indices[index] = LearnLetterData.new()
+        learn_letters.set_item_tooltip_enabled(index, true)
+        learn_letters.set_item_tooltip(index, _format_learn_letter_tooltip(letter_indices[index]))
     else:
-        letters.erase(index)
+        letter_indices.erase(index)
+        learn_letters.set_item_tooltip_enabled(index, false)
     generate_new_test.emit()
 
 
@@ -120,6 +123,26 @@ func _rebuild_include_letter(alphabet: PackedStringArray):
 func _rebuild_learn_letters(alphabet: PackedStringArray, letter_indices: Dictionary):
     learn_letters.clear()
     for letter in alphabet:
-        learn_letters.add_item(letter)
-    for letter_index in letter_indices:
-        learn_letters.select(letter_index, false)
+        var index = learn_letters.add_item(letter)
+        if letter_indices.has(index):
+            learn_letters.select(index, false)
+            learn_letters.set_item_tooltip_enabled(index, true)
+            learn_letters.set_item_tooltip(index, _format_learn_letter_tooltip(letter_indices[index]))
+        else:
+            learn_letters.set_item_tooltip_enabled(index, false)
+
+
+# TODO this updates all letters simultaniously, bet there's no need to: just update last one
+# or there's need to? hmm...
+func update_letter_stats():
+    if typing_config.test_language == TypingData.TestLanguage.Numbers:
+        return
+    if typing_config.test_type != TypingData.TestType.Letters:
+        return
+    var letter_indices = typing_config.learn_letters[typing_config.test_language]
+    for index in letter_indices:
+        learn_letters.set_item_tooltip(index, _format_learn_letter_tooltip(letter_indices[index]))
+
+
+func _format_learn_letter_tooltip(letter_data: LearnLetterData) -> String:
+    return "hits: %s\nmistakes: %s" % [letter_data.hits_count, letter_data.mistakes_count]

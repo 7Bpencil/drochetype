@@ -1,5 +1,5 @@
-class_name LearnLetterData
+class_name LearnLetterData extends Resource
 
 
-var hits_count: int
-var mistakes_count: int
+@export var hits_count: int
+@export var mistakes_count: int

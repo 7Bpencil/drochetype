@@ -19,6 +19,7 @@ class_name ScreenTyping extends Node
 signal show_test_result(result: TypingResult)
 signal generate_new_test()
 signal reset_current_test()
+signal update_letter_stats()
 
 
 var typing_data: TypingData
@@ -273,6 +274,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
         else:
             typing_config.on_mistake(goal_char, key_time, typing_data)
             real_mistakes_count += 1
+        update_letter_stats.emit()
 
         if event_keycode == KEY_SPACE and not is_correct:
             letter.label_settings = letter_settings_wrong
