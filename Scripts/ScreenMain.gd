@@ -145,4 +145,4 @@ func update_letter_stats():
 
 
 func _format_learn_letter_tooltip(letter_data: LearnLetterData) -> String:
-    return "hits: %s\nmistakes: %s" % [letter_data.hits_count, letter_data.mistakes_count]
+    return "results: %s\ntimes: %s" % [letter_data.results, letter_data.times]

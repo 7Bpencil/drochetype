@@ -267,13 +267,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
         var letter = letters[input_letter_index]
         var is_correct = key_char == goal_char
         var key_time = current_key_time - previous_key_time
-        real_keys_count += 1
 
-        if is_correct:
-            typing_config.on_hit(goal_char, key_time, typing_data)
-        else:
-            typing_config.on_mistake(goal_char, key_time, typing_data)
+        real_keys_count += 1
+        if not is_correct:
             real_mistakes_count += 1
+
+        typing_config.on_letter_typed(goal_char, is_correct, key_time, typing_data)
         update_letter_stats.emit()
 
         if event_keycode == KEY_SPACE and not is_correct:
