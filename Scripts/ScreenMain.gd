@@ -151,4 +151,4 @@ func _format_learn_letter_tooltip(letter_data: LearnLetterData) -> String:
     var time_wpm = 60.0 / (time / 1000.0) / 5.0
     var accuracy_formatted = "%d%%" % accuracy_percent if accuracy != 0.0 else "no data"
     var time_formatted = "%d" % time_wpm if time != 0.0 else "no data"
-    return "accuracy: %s\nwpm: %s" % [accuracy_formatted, time_formatted]
+    return "last 10 average:\naccuracy: %s\nwpm: %s" % [accuracy_formatted, time_formatted]
