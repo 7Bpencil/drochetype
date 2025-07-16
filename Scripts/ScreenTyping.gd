@@ -293,8 +293,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
         previous_key_time = current_key_time
         input_letter_index += 1
         _set_cursor_position(input_letter_index, goal_letters.size())
+        Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 
         return
+
+
+func _input(event):
+    if event is InputEventMouseMotion:
+        var movement = event.relative
+        if movement.x + movement.y > 0:
+            Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)             
 
 
 func _process(delta):
