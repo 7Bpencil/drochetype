@@ -302,7 +302,7 @@ func _input(event):
     if event is InputEventMouseMotion:
         var movement = event.relative
         if movement.x + movement.y > 0:
-            Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)             
+            Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 
 func _process(delta):
