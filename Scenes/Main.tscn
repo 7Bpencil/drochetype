@@ -362,7 +362,8 @@ custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
-tooltip_text = "Space to start next test
+tooltip_text = "Backspace to correct mistakes
+Space to start next test
 Esc to reset test
 Esc again to regenerate test"
 mouse_filter = 0
