@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://0kcwtttcr5bt"]
+[gd_scene load_steps=21 format=3 uid="uid://0kcwtttcr5bt"]
 
 [ext_resource type="LabelSettings" uid="uid://duxx0llfqminq" path="res://LabelSettings/goal.tres" id="2_idj7w"]
 [ext_resource type="Script" uid="uid://wcffn5nhpmis" path="res://Scripts/Main.gd" id="3_pbw6q"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" uid="uid://d1s2yg820ksd4" path="res://Scripts/ScreenResult.gd" id="10_346fj"]
 [ext_resource type="FoldableGroup" uid="uid://c3p0xx38m8bg8" path="res://FoldableGroups/screen_main_foldable_group.tres" id="14_1p5hy"]
 [ext_resource type="Theme" uid="uid://bd8omdk4k5nhq" path="res://Themes/alphabet_item_list.tres" id="15_h1m7h"]
+[ext_resource type="Texture2D" uid="uid://82ddnk57ecob" path="res://Images/UI/circle.png" id="16_erwvk"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_dtese"]
 font = ExtResource("5_frkhe")
@@ -24,6 +25,13 @@ font_size = 29
 font = ExtResource("5_frkhe")
 font_size = 59
 font_color = Color(0.8862745, 0.7176471, 0.078431375, 1)
+
+[sub_resource type="Theme" id="Theme_erwvk"]
+MarginContainer/constants/margin_top = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_2w5on"]
+font = ExtResource("5_frkhe")
+font_size = 22
 
 [node name="SceneRoot" type="Control" node_paths=PackedStringArray("screen_main", "screen_typing", "screen_result")]
 layout_mode = 3
@@ -222,9 +230,9 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -315.5
+offset_left = -339.0
 offset_top = 115.0
-offset_right = 315.5
+offset_right = 469.0
 offset_bottom = 146.0
 grow_horizontal = 2
 
@@ -342,3 +350,38 @@ item_0/text = "very small"
 item_1/text = "small"
 item_2/text = "medium"
 item_3/text = "large"
+
+[node name="HelpIcon" type="MarginContainer" parent="ScreenMain/Settings"]
+layout_mode = 2
+mouse_filter = 2
+theme = SubResource("Theme_erwvk")
+
+[node name="Background" type="TextureRect" parent="ScreenMain/Settings/HelpIcon"]
+self_modulate = Color(0.4753633, 0.37687942, 0.023279263, 1)
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+tooltip_text = "Space to start next test
+Esc to reset test
+Esc again to regenerate test"
+mouse_filter = 0
+texture = ExtResource("16_erwvk")
+expand_mode = 1
+
+[node name="Label" type="Label" parent="ScreenMain/Settings/HelpIcon/Background"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -11.0
+offset_right = 21.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "?"
+label_settings = SubResource("LabelSettings_2w5on")
+horizontal_alignment = 1
