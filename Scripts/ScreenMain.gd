@@ -68,12 +68,9 @@ func _on_include_letter_selected(index: int):
 func _on_learn_letters_selected(index: int, selected: bool):
     var letter_indices = typing_config.learn_letters[typing_config.test_language]
     if selected:
-        letter_indices[index] = LearnLetterData.new()
-        learn_letters.set_item_tooltip_enabled(index, true)
-        learn_letters.set_item_tooltip(index, _format_learn_letter_tooltip(letter_indices[index]))
+        letter_indices[index] = true
     else:
         letter_indices.erase(index)
-        learn_letters.set_item_tooltip_enabled(index, false)
     generate_new_test.emit()
 
 
@@ -126,28 +123,3 @@ func _rebuild_learn_letters(alphabet: PackedStringArray, letter_indices: Diction
         var index = learn_letters.add_item(letter)
         if letter_indices.has(index):
             learn_letters.select(index, false)
-            learn_letters.set_item_tooltip_enabled(index, true)
-            learn_letters.set_item_tooltip(index, _format_learn_letter_tooltip(letter_indices[index]))
-        else:
-            learn_letters.set_item_tooltip_enabled(index, false)
-
-
-# TODO this updates all letters simultaniously, bet there's no need to: just update last one
-# or there's need to? hmm...
-func update_letter_stats():
-    if typing_config.test_language == TypingData.TestLanguage.Numbers:
-        return
-    if typing_config.test_type != TypingData.TestType.Letters:
-        return
-    var letter_indices = typing_config.learn_letters[typing_config.test_language]
-    for index in letter_indices:
-        learn_letters.set_item_tooltip(index, _format_learn_letter_tooltip(letter_indices[index]))
-
-
-func _format_learn_letter_tooltip(letter_data: LearnLetterData) -> String:
-    var accuracy = letter_data.get_average_accuracy()
-    var time_wpm = letter_data.get_average_time_wpm()
-    var accuracy_percent = accuracy * 100
-    var accuracy_formatted = "%d%%" % accuracy_percent if accuracy != 0.0 else "no data"
-    var time_formatted = "%d" % time_wpm if time_wpm != 0.0 else "no data"
-    return "last 10 average:\naccuracy: %s\nwpm: %s" % [accuracy_formatted, time_formatted]

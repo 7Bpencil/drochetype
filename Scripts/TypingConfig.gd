@@ -39,22 +39,3 @@ static func _create_default_config() -> TypingConfig:
 func save():
     var save_file = FileAccess.open(_save_file_path, FileAccess.WRITE)
     save_file.store_var(self, true)
-
-
-func on_letter_typed(letter: String, is_correct: bool, key_time: int, typing_data: TypingData) -> void:
-    if test_language == TypingData.TestLanguage.Numbers:
-        return
-    if test_type != TypingData.TestType.Letters:
-        return
-    # TODO filter letter with anomaly timings, for example 2x average (player was afk)
-    if key_time <= 0 or key_time >= 5000:
-        return
-
-    var alphabet_dict = typing_data.languages[test_language].alphabet_dict
-    if not alphabet_dict.has(letter):
-        return
-
-    var letters = learn_letters[test_language]
-    var letter_index = alphabet_dict[letter]
-    var letter_data = letters[letter_index]
-    letter_data.push_new_value(is_correct, key_time)
