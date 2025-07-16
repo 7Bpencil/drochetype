@@ -146,9 +146,8 @@ func update_letter_stats():
 
 func _format_learn_letter_tooltip(letter_data: LearnLetterData) -> String:
     var accuracy = letter_data.get_average_accuracy()
-    var time = letter_data.get_average_time()
+    var time_wpm = letter_data.get_average_time_wpm()
     var accuracy_percent = accuracy * 100
-    var time_wpm = 60.0 / (time / 1000.0) / 5.0
     var accuracy_formatted = "%d%%" % accuracy_percent if accuracy != 0.0 else "no data"
-    var time_formatted = "%d" % time_wpm if time != 0.0 else "no data"
+    var time_formatted = "%d" % time_wpm if time_wpm != 0.0 else "no data"
     return "last 10 average:\naccuracy: %s\nwpm: %s" % [accuracy_formatted, time_formatted]

@@ -40,3 +40,10 @@ func get_average_time() -> float:
     for time in times:
         sum += time
     return sum / times.size()
+
+
+func get_average_time_wpm() -> float:
+    var time = get_average_time()
+    var time_wpm = 60.0 / (time / 1000.0) / 5.0
+    return time_wpm
+    
