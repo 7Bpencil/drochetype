@@ -3,16 +3,19 @@ class_name TestGenerator
 
 var typing_data: TypingData
 var typing_config: TypingConfig
-var available_word_letters: Dictionary
-var available_word_tokens: Array
-var word_builder: Array
+var available_word_tokens_per_letter: Dictionary
+var available_word_tokens: Array[String]
+var available_word_tokens_copy: Array[String]
+var target_letter: String
+var word_builder: Array[String]
 
 
 func _init(data: TypingData, config: TypingConfig):
     typing_data = data
     typing_config = config
-    available_word_letters = {}
+    available_word_tokens_per_letter = {}
     available_word_tokens = []
+    available_word_tokens_copy = []
     word_builder = []
 
 
@@ -26,20 +29,27 @@ func generate_next_test() -> void:
 
 
 func _collect_avalilable_word_tokens(language_config: TypingConfigNaturalLanguage, alphabet: PackedStringArray, bigrams: PackedStringArray, trigrams: PackedStringArray):
-    available_word_letters.clear()
+    available_word_tokens_per_letter.clear()
     available_word_tokens.clear()
+    available_word_tokens_copy.clear()
 
     var letter_indices = language_config.learn_letters
     if letter_indices.size() == 0:
         return "select letters"
 
+    var target_letter_index = language_config.learn_letters_target
+    if target_letter_index == -1:
+        target_letter = ""
+    else:
+        target_letter = alphabet[target_letter_index]
+
     for letter_index in letter_indices:
         var letter = alphabet[letter_index]
-        available_word_letters[letter] = true
+        available_word_tokens_per_letter[letter] = LetterTokens.new()
 
     # add letters themselves as tokens because rare ones often dont have bigrams/trigrams
-    for letter in available_word_letters:
-        available_word_tokens.append(letter)
+    for letter in available_word_tokens_per_letter:
+        available_word_tokens_per_letter[letter].push_unique_token(letter)
 
     # get all available bigrams
     for bigram in bigrams:
@@ -47,11 +57,12 @@ func _collect_avalilable_word_tokens(language_config: TypingConfigNaturalLanguag
             continue
         var is_available = true
         for letter in bigram:
-            if not available_word_letters.has(letter):
+            if not available_word_tokens_per_letter.has(letter):
                 is_available = false
                 break
         if is_available:
-            available_word_tokens.append(bigram)
+            available_word_tokens_per_letter[bigram[0]].push_unique_token(bigram)
+            available_word_tokens_per_letter[bigram[1]].push_shared_token(bigram)
 
     # get all available trigrams
     for trigram in trigrams:
@@ -59,11 +70,48 @@ func _collect_avalilable_word_tokens(language_config: TypingConfigNaturalLanguag
             continue
         var is_available = true
         for letter in trigram:
-            if not available_word_letters.has(letter):
+            if not available_word_tokens_per_letter.has(letter):
                 is_available = false
                 break
         if is_available:
-            available_word_tokens.append(trigram)
+            available_word_tokens_per_letter[trigram[0]].push_unique_token(trigram)
+            available_word_tokens_per_letter[trigram[1]].push_shared_token(trigram)
+            available_word_tokens_per_letter[trigram[2]].push_shared_token(trigram)
+
+    # our goal is to have all letters appear in equal amounts throughout test
+    var max_tokens_count = 0
+    for letter in available_word_tokens_per_letter:
+        var letter_tokens = available_word_tokens_per_letter[letter]
+        if letter_tokens.total_tokens_count > max_tokens_count:
+            max_tokens_count = letter_tokens.total_tokens_count
+
+    # sometimes theres no bigrams or trigrams, so just use letters themselves
+    if max_tokens_count == 0:
+        max_tokens_count = 1
+
+    # make rare letters more common by adding letter themselves as tokens
+    for letter in available_word_tokens_per_letter:
+        var letter_tokens = available_word_tokens_per_letter[letter]
+        letter_tokens.fill_tokens(letter, max_tokens_count, available_word_tokens)
+
+
+class LetterTokens:
+    var total_tokens_count: int = 0
+    var unique_tokens: Array[String] = []
+
+    func push_unique_token(token: String):
+        total_tokens_count += 1
+        unique_tokens.append(token)
+
+    func push_shared_token(token: String):
+        total_tokens_count += 1
+
+    func fill_tokens(letter: String, target_count: int, target_array: Array[String]):
+        target_array.append_array(unique_tokens)
+        var diff = target_count - total_tokens_count
+        if diff > 0:
+            for i in range(diff):
+                target_array.append(letter)
 
 
 func get_next_word() -> String:
@@ -95,20 +143,31 @@ func _get_next_natural_language_word(language_data: NaturalLanguageData) -> Stri
             return "error"
 
 
-# IDEA creating test for learning can not be done word by word
-# TODO collecting available tokens can be done after selecting letter, not at generating each word
-# for each letter generate its own bigram, otherwise there will be only common bigrams
 func _generate_word_from_available_word_tokens() -> String:
     if available_word_tokens.size() == 0:
         return "select letters"
 
-    var word_length = 2
+    var word_length = 3
 
-    available_word_tokens.shuffle() # TODO shuffle with priorities
     word_builder.clear()
-    word_builder.resize(word_length)
-    for i in range(word_length ):
-        word_builder[i] = available_word_tokens[i % available_word_tokens.size()]
+    for i in range(word_length):
+        if available_word_tokens_copy.size() == 0:
+            available_word_tokens_copy.append_array(available_word_tokens)
+            available_word_tokens_copy.shuffle()
+
+        word_builder.append(available_word_tokens_copy.pop_back())
+
+    # if target letter has not appeared in the word naturaly, then add it after-the-fact
+    if target_letter != "":
+        var has_target_letter = false
+        for token in word_builder:
+            if token.contains(target_letter):
+                has_target_letter = true
+                break
+        if not has_target_letter:
+            var new_token = available_word_tokens_per_letter[target_letter].unique_tokens.pick_random()
+            word_builder.append(new_token)
+
     word_builder.shuffle()
     return "".join(word_builder)
 
