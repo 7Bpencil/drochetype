@@ -222,6 +222,9 @@ include_letter_foldable = NodePath("Settings/IncludeLetter")
 include_letter = NodePath("Settings/IncludeLetter/ItemList")
 learn_letters_foldable = NodePath("Settings/LearnLetters")
 learn_letters = NodePath("Settings/LearnLetters/ItemList")
+learn_letters_target_color = Color(0.8862745, 0.7176471, 0.078431375, 1)
+learn_letters_item_tooltip = "LMB to toggle letter
+RMB to toggle target"
 test_size_foldable = NodePath("Settings/TestSize")
 test_size = NodePath("Settings/TestSize/ItemList")
 
@@ -357,7 +360,7 @@ mouse_filter = 2
 theme = SubResource("Theme_erwvk")
 
 [node name="Background" type="TextureRect" parent="ScreenMain/Settings/HelpIcon"]
-self_modulate = Color(0.4753633, 0.37687942, 0.023279263, 1)
+self_modulate = Color(0.4745098, 0.3764706, 0.023529412, 1)
 custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_horizontal = 0

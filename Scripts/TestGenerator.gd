@@ -20,15 +20,16 @@ func generate_next_test() -> void:
     if typing_config.test_language == TypingData.TestLanguage.Numbers:
         return
     if typing_config.test_type == TypingData.TestType.Letters:
-        var letters = typing_config.learn_letters[typing_config.test_language]
+        var language_config = typing_config.language_configs[typing_config.test_language]
         var language_data = typing_data.languages[typing_config.test_language]
-        _collect_avalilable_word_tokens(letters, language_data.alphabet, language_data.bigrams, language_data.trigrams)
+        _collect_avalilable_word_tokens(language_config, language_data.alphabet, language_data.bigrams, language_data.trigrams)
 
 
-func _collect_avalilable_word_tokens(letter_indices: Dictionary, alphabet: PackedStringArray, bigrams: PackedStringArray, trigrams: PackedStringArray):
+func _collect_avalilable_word_tokens(language_config: TypingConfigNaturalLanguage, alphabet: PackedStringArray, bigrams: PackedStringArray, trigrams: PackedStringArray):
     available_word_letters.clear()
     available_word_tokens.clear()
 
+    var letter_indices = language_config.learn_letters
     if letter_indices.size() == 0:
         return "select letters"
 

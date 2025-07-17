@@ -11,6 +11,8 @@ class_name ScreenMain extends Node
 @export var include_letter: ItemList
 @export var learn_letters_foldable: FoldableContainer
 @export var learn_letters: ItemList
+@export var learn_letters_target_color: Color
+@export_multiline var learn_letters_item_tooltip: String
 @export var test_size_foldable: FoldableContainer
 @export var test_size: ItemList
 
@@ -21,6 +23,7 @@ signal generate_new_test()
 var typing_data: TypingData
 var typing_config: TypingConfig
 
+const no_color = Color(0, 0, 0, 0)
 
 func _ready():
     test_language.item_selected.connect(_on_test_language_selected)
@@ -28,6 +31,7 @@ func _ready():
     words_rarity.item_selected.connect(_on_words_rarity_selected)
     include_letter.item_selected.connect(_on_include_letter_selected)
     learn_letters.multi_selected.connect(_on_learn_letters_selected)
+    learn_letters.item_clicked.connect(_on_learn_letters_clicked)
     test_size.item_selected.connect(_on_test_size_selected)
 
 
@@ -66,11 +70,39 @@ func _on_include_letter_selected(index: int):
 
 
 func _on_learn_letters_selected(index: int, selected: bool):
-    var letter_indices = typing_config.learn_letters[typing_config.test_language]
+    var language_config = typing_config.language_configs[typing_config.test_language]
     if selected:
-        letter_indices[index] = true
+        language_config.learn_letters[index] = true
+        if language_config.learn_letters_target != -1:
+            learn_letters.set_item_custom_bg_color(language_config.learn_letters_target, no_color)
+        language_config.learn_letters_target = index
+        learn_letters.set_item_custom_bg_color(index, learn_letters_target_color)
     else:
-        letter_indices.erase(index)
+        language_config.learn_letters.erase(index)
+        if language_config.learn_letters_target == index:
+            language_config.learn_letters_target = -1
+            learn_letters.set_item_custom_bg_color(index, no_color)
+
+    generate_new_test.emit()
+
+
+func _on_learn_letters_clicked(index: int, at_position: Vector2, mouse_button_index: int):
+    if mouse_button_index != MOUSE_BUTTON_RIGHT:
+        return
+
+    var language_config = typing_config.language_configs[typing_config.test_language]
+    if not language_config.learn_letters.has(index):
+        return
+
+    if language_config.learn_letters_target == index:
+        language_config.learn_letters_target = -1
+        learn_letters.set_item_custom_bg_color(index, no_color)
+    else:
+        if language_config.learn_letters_target != -1:
+            learn_letters.set_item_custom_bg_color(language_config.learn_letters_target, no_color)
+        language_config.learn_letters_target = index
+        learn_letters.set_item_custom_bg_color(index, learn_letters_target_color)
+
     generate_new_test.emit()
 
 
@@ -101,7 +133,7 @@ func _rebuild_ui():
 
         if typing_config.test_type == TypingData.TestType.Letters:
             learn_letters_foldable.visible = true
-            _rebuild_learn_letters(typing_data.languages[typing_config.test_language].alphabet, typing_config.learn_letters[typing_config.test_language])
+            _rebuild_learn_letters(typing_data.languages[typing_config.test_language].alphabet, typing_config.language_configs[typing_config.test_language])
         else:
             learn_letters_foldable.visible = false
 
@@ -117,9 +149,13 @@ func _rebuild_include_letter(alphabet: PackedStringArray):
     include_letter.select(typing_config.include_letter + 1)
 
 
-func _rebuild_learn_letters(alphabet: PackedStringArray, letter_indices: Dictionary):
+func _rebuild_learn_letters(alphabet: PackedStringArray, language_config: TypingConfigNaturalLanguage):
     learn_letters.clear()
     for letter in alphabet:
         var index = learn_letters.add_item(letter)
-        if letter_indices.has(index):
+        learn_letters.set_item_tooltip(index, learn_letters_item_tooltip)
+        if language_config.learn_letters.has(index):
             learn_letters.select(index, false)
+
+    if language_config.learn_letters_target != -1:
+        learn_letters.set_item_custom_bg_color(language_config.learn_letters_target, learn_letters_target_color)
