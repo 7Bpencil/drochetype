@@ -60,7 +60,7 @@ func _on_words_rarity_selected(index: int):
 
 
 func _on_include_letter_selected(index: int):
-    typing_config.include_letter = index
+    typing_config.include_letter = index - 1
     include_letter_foldable.folded = true
     generate_new_test.emit()
 
@@ -114,7 +114,7 @@ func _rebuild_include_letter(alphabet: PackedStringArray):
     include_letter.add_item("*")
     for letter in alphabet:
         include_letter.add_item(letter)
-    include_letter.select(typing_config.include_letter)
+    include_letter.select(typing_config.include_letter + 1)
 
 
 func _rebuild_learn_letters(alphabet: PackedStringArray, letter_indices: Dictionary):

@@ -80,10 +80,10 @@ func _get_next_natural_language_word(language_data: NaturalLanguageData) -> Stri
         TypingData.TestType.Trigrams:
             return _get_random_element(language_data.trigrams)
         TypingData.TestType.Words:
-            if typing_config.include_letter == 0:
+            if typing_config.include_letter == -1:
                 return _get_random_element(language_data.words[typing_config.words_rarity])
             else:
-                var letter = language_data.alphabet[typing_config.include_letter - 1]
+                var letter = language_data.alphabet[typing_config.include_letter]
                 var word_indices = language_data.words_per_letter[typing_config.words_rarity][letter]
                 if word_indices.size() == 0:
                     return "no words"
