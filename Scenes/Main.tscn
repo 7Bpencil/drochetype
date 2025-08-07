@@ -79,7 +79,6 @@ letter_settings_wrong = ExtResource("9_2w5on")
 
 [node name="LettersRoot" type="Control" parent="ScreenTyping"]
 layout_mode = 1
-anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -93,7 +92,7 @@ grow_vertical = 2
 
 [node name="Timer" type="Label" parent="ScreenTyping"]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -122,7 +121,7 @@ label_accuracy_real = NodePath("label_acc_real_value")
 
 [node name="label_wpm" type="Label" parent="ScreenResult"]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -138,7 +137,7 @@ label_settings = SubResource("LabelSettings_dtese")
 
 [node name="label_wpm_value" type="Label" parent="ScreenResult"]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -157,7 +156,7 @@ label_settings = SubResource("LabelSettings_d1t63")
 
 [node name="label_time" type="Label" parent="ScreenResult"]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -173,7 +172,7 @@ label_settings = SubResource("LabelSettings_dtese")
 
 [node name="label_acc_real" type="Label" parent="ScreenResult"]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -189,7 +188,7 @@ label_settings = SubResource("LabelSettings_dtese")
 
 [node name="label_acc_real_value" type="Label" parent="ScreenResult"]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -230,7 +229,7 @@ test_size = NodePath("Settings/TestSize/ItemList")
 
 [node name="Settings" type="HBoxContainer" parent="ScreenMain"]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = -1
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -339.0
@@ -253,10 +252,11 @@ layout_mode = 2
 allow_search = false
 auto_width = true
 auto_height = true
-item_count = 3
+item_count = 4
 item_0/text = "numbers"
-item_1/text = "english"
-item_2/text = "russian"
+item_1/text = "symbols"
+item_2/text = "english"
+item_3/text = "russian"
 
 [node name="TestType" type="FoldableContainer" parent="ScreenMain/Settings"]
 custom_minimum_size = Vector2(100, 0)
@@ -375,7 +375,7 @@ expand_mode = 1
 
 [node name="Label" type="Label" parent="ScreenMain/Settings/HelpIcon/Background"]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5

@@ -2,6 +2,7 @@ class_name TypingData extends Resource
 
 enum TestLanguage {
     Numbers,
+    Symbols,
     English,
     Russian,
 }
@@ -98,6 +99,7 @@ static func cache() -> void:
     var typing_data = TypingData.new()
 
     var numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    var symbols = ["+", "-", "*", "/", "\\", ",", ".", "=", "!", "?", "_", "%", "@", "$", "|", "&", "#", ":", ";", "^", "(", ")", "{", "}", "[", "]", "<", ">", "\"", "'", "`", "~"]
 
     var english = NaturalLanguageData.new()
     english.alphabet                      = _load_language("res://Data/english_alphabet.txt")
@@ -127,6 +129,7 @@ static func cache() -> void:
 
     typing_data.languages = {
         TypingData.TestLanguage.Numbers : numbers,
+        TypingData.TestLanguage.Symbols : symbols,
         TypingData.TestLanguage.English : english,
         TypingData.TestLanguage.Russian : russian,
     }
