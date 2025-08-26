@@ -79,6 +79,7 @@ letter_settings_wrong = ExtResource("9_2w5on")
 
 [node name="LettersRoot" type="Control" parent="ScreenTyping"]
 layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5

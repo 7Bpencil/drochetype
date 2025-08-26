@@ -151,22 +151,10 @@ static func cache() -> void:
 
 static func _load_language(path: String) -> PackedStringArray:
     var words_file = FileAccess.open(path, FileAccess.READ)
-    var words_file_content = words_file.get_as_text()
-    var line_endings = _get_line_endings(words_file_content)
-    var words = words_file_content.split(line_endings)
+    var words_file_content = words_file.get_as_text(true)
+    var words = words_file_content.split("\n")
     words.remove_at(words.size() - 1) # last word has size 0
     return words
-
-
-static func _get_line_endings(file_content: String):
-    const unix_endings = "\n"
-    const windows_endings = "\r\n"
-    var first_few_words = file_content.left(50) # lets hope there wont be 50 char long words...
-    if first_few_words.contains(windows_endings):
-        return windows_endings
-    if first_few_words.contains(unix_endings):
-        return unix_endings
-    return ""
 
 
 static func _build_alphabet_dict(alphabet: PackedStringArray):
