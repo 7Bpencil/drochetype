@@ -16,7 +16,7 @@ static func load() -> TypingConfig:
     if not FileAccess.file_exists(_save_file_path):
         return _create_default_config()
 
-    var save_file = FileAccess.open(_save_file_path, FileAccess.READ)
+    var save_file = FileAccess.open_compressed(_save_file_path, FileAccess.READ, FileAccess.CompressionMode.COMPRESSION_ZSTD)
     return save_file.get_var(true)
 
 
@@ -35,7 +35,6 @@ static func _create_default_config() -> TypingConfig:
     return typing_config
 
 
-# TODO we call it at every change in config, so it does block main thread, would be good to make it async
 func save():
-    var save_file = FileAccess.open(_save_file_path, FileAccess.WRITE)
+    var save_file = FileAccess.open_compressed(_save_file_path, FileAccess.WRITE, FileAccess.CompressionMode.COMPRESSION_ZSTD)
     save_file.store_var(self, true)
