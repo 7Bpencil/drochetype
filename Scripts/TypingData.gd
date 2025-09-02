@@ -112,7 +112,7 @@ static func cache() -> void:
         TypingData.WordsRarity.Rare       : _load_monkeytype_words("res://Data/english_25k.json"),
         TypingData.WordsRarity.VeryRare   : _load_monkeytype_words("res://Data/english_450k.json"),
     }
-    english.words_per_letter              = _filter_words(english.words, english.alphabet)
+    english.words_per_letter              = _filter_words_per_letter(english.words, english.alphabet)
 
     var russian = NaturalLanguageData.new()
     russian.alphabet                      = _load_lines("res://Data/russian_alphabet.txt")
@@ -125,7 +125,7 @@ static func cache() -> void:
         TypingData.WordsRarity.Rare       : _load_monkeytype_words("res://Data/russian_25k.json"),
         TypingData.WordsRarity.VeryRare   : _load_monkeytype_words("res://Data/russian_375k.json"),
     }
-    russian.words_per_letter              = _filter_words(russian.words, russian.alphabet)
+    russian.words_per_letter              = _filter_words_per_letter(russian.words, russian.alphabet)
 
     typing_data.languages = {
         TypingData.TestLanguage.Numbers : numbers,
@@ -182,16 +182,16 @@ static func _build_alphabet_dict(alphabet: PackedStringArray) -> Dictionary:
     return result
 
 
-static func _filter_words(words: Dictionary, alphabet: PackedStringArray) -> Dictionary:
+static func _filter_words_per_letter(words: Dictionary, alphabet: PackedStringArray) -> Dictionary:
     var result = {}
     for word_rarity in words:
         var all_words = words[word_rarity]
-        result[word_rarity] = _filter_words_per_letter(all_words, alphabet)
+        result[word_rarity] = _filter_words_per_letter_inner(all_words, alphabet)
 
     return result
 
 
-static func _filter_words_per_letter(all_words: PackedStringArray, alphabet: PackedStringArray) -> Dictionary:
+static func _filter_words_per_letter_inner(all_words: PackedStringArray, alphabet: PackedStringArray) -> Dictionary:
     var result: Dictionary = {}
     for letter in alphabet:
         result[letter] = []
@@ -200,10 +200,14 @@ static func _filter_words_per_letter(all_words: PackedStringArray, alphabet: Pac
         var word = all_words[word_index]
         letter_cache.clear()
         for letter in word:
-            if not result.has(letter): # for words with non alphabet characters inside
+            # for words with non alphabet characters inside
+            if not result.has(letter):
                 continue
+
+            # do not include word multiple times because it has repeating characters
             if letter_cache.has(letter):
                 continue
+
             result[letter].append(word_index)
             letter_cache[letter] = true
 
