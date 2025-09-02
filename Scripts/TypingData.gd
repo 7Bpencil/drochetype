@@ -101,7 +101,10 @@ static func cache() -> void:
     var numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     var symbols = ["+", "-", "*", "/", "\\", ",", ".", "=", "!", "?", "_", "%", "@", "$", "|", "&", "#", ":", ";", "^", "(", ")", "{", "}", "[", "]", "<", ">", "\"", "'", "`", "~"]
 
-    var english = _load_natural_language(
+    var english = NaturalLanguageData.new()
+    var english_thread = Thread.new()
+    english_thread.start(_load_natural_language.bind(
+        english,
         "res://Data/english_alphabet.txt",
         "res://Data/english_bigrams.txt",
         "res://Data/english_trigrams.txt",
@@ -109,9 +112,12 @@ static func cache() -> void:
         "res://Data/english_1k.json",
         "res://Data/english_25k.json",
         "res://Data/english_450k.json"
-    )
+    ))
 
-    var russian = _load_natural_language(
+    var russian = NaturalLanguageData.new()
+    var russian_thread = Thread.new()
+    russian_thread.start(_load_natural_language.bind(
+        russian,
         "res://Data/russian_alphabet.txt",
         "res://Data/russian_bigrams.txt",
         "res://Data/russian_trigrams.txt",
@@ -119,7 +125,10 @@ static func cache() -> void:
         "res://Data/russian_1k.json",
         "res://Data/russian_25k.json",
         "res://Data/russian_375k.json"
-    )
+    ))
+
+    english_thread.wait_to_finish()
+    russian_thread.wait_to_finish()
 
     typing_data.languages = {
         TypingData.TestLanguage.Numbers : numbers,
@@ -145,15 +154,15 @@ static func cache() -> void:
 
 
 static func _load_natural_language(
+    result: NaturalLanguageData,
     alphabet_path: String,
     bigrams_path: String,
     trigrams_path: String,
     words_very_common_path: String,
     words_common_path: String,
     words_rare_path: String,
-    words_very_rare_path: String) -> NaturalLanguageData:
-
-    var result = NaturalLanguageData.new()
+    words_very_rare_path: String
+):
     result.alphabet                       = _load_lines(alphabet_path)
     result.alphabet_dict                  = _build_alphabet_dict(result.alphabet)
     result.bigrams                        = _load_lines(bigrams_path)
@@ -165,7 +174,6 @@ static func _load_natural_language(
         TypingData.WordsRarity.VeryRare   : _load_monkeytype_words(words_very_rare_path),
     }
     result.words_per_letter               = _filter_words_per_letter(result.words, result.alphabet)
-    return result
 
 
 static func _load_lines(path: String) -> PackedStringArray:
