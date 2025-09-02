@@ -102,28 +102,28 @@ static func cache() -> void:
     var symbols = ["+", "-", "*", "/", "\\", ",", ".", "=", "!", "?", "_", "%", "@", "$", "|", "&", "#", ":", ";", "^", "(", ")", "{", "}", "[", "]", "<", ">", "\"", "'", "`", "~"]
 
     var english = NaturalLanguageData.new()
-    english.alphabet                      = _load_language("res://Data/english_alphabet.txt")
+    english.alphabet                      = _load_lines("res://Data/english_alphabet.txt")
     english.alphabet_dict                 = _build_alphabet_dict(english.alphabet)
-    english.bigrams                       = _load_language("res://Data/english_bigrams.txt")
-    english.trigrams                      = _load_language("res://Data/english_trigrams.txt")
+    english.bigrams                       = _load_lines("res://Data/english_bigrams.txt")
+    english.trigrams                      = _load_lines("res://Data/english_trigrams.txt")
     english.words = {
-        TypingData.WordsRarity.VeryCommon : _load_language("res://Data/english_200.txt"),
-        TypingData.WordsRarity.Common     : _load_language("res://Data/english_1k.txt"),
-        TypingData.WordsRarity.Rare       : _load_language("res://Data/english_25k.txt"),
-        TypingData.WordsRarity.VeryRare   : _load_language("res://Data/english_450k.txt"),
+        TypingData.WordsRarity.VeryCommon : _load_monkeytype_words("res://Data/english.json"),
+        TypingData.WordsRarity.Common     : _load_monkeytype_words("res://Data/english_1k.json"),
+        TypingData.WordsRarity.Rare       : _load_monkeytype_words("res://Data/english_25k.json"),
+        TypingData.WordsRarity.VeryRare   : _load_monkeytype_words("res://Data/english_450k.json"),
     }
     english.words_per_letter              = _filter_words(english.words, english.alphabet)
 
     var russian = NaturalLanguageData.new()
-    russian.alphabet                      = _load_language("res://Data/russian_alphabet.txt")
+    russian.alphabet                      = _load_lines("res://Data/russian_alphabet.txt")
     russian.alphabet_dict                 = _build_alphabet_dict(russian.alphabet)
-    russian.bigrams                       = _load_language("res://Data/russian_bigrams.txt")
-    russian.trigrams                      = _load_language("res://Data/russian_trigrams.txt")
+    russian.bigrams                       = _load_lines("res://Data/russian_bigrams.txt")
+    russian.trigrams                      = _load_lines("res://Data/russian_trigrams.txt")
     russian.words = {
-        TypingData.WordsRarity.VeryCommon : _load_language("res://Data/russian_200.txt"),
-        TypingData.WordsRarity.Common     : _load_language("res://Data/russian_1k.txt"),
-        TypingData.WordsRarity.Rare       : _load_language("res://Data/russian_25k.txt"),
-        TypingData.WordsRarity.VeryRare   : _load_language("res://Data/russian_375k.txt"),
+        TypingData.WordsRarity.VeryCommon : _load_monkeytype_words("res://Data/russian.json"),
+        TypingData.WordsRarity.Common     : _load_monkeytype_words("res://Data/russian_1k.json"),
+        TypingData.WordsRarity.Rare       : _load_monkeytype_words("res://Data/russian_25k.json"),
+        TypingData.WordsRarity.VeryRare   : _load_monkeytype_words("res://Data/russian_375k.json"),
     }
     russian.words_per_letter              = _filter_words(russian.words, russian.alphabet)
 
@@ -149,12 +149,28 @@ static func cache() -> void:
     file.store_var(typing_data, true)
 
 
-static func _load_language(path: String) -> PackedStringArray:
-    var words_file = FileAccess.open(path, FileAccess.READ)
-    var words_file_content = words_file.get_as_text(true)
-    var words = words_file_content.split("\n")
-    words.remove_at(words.size() - 1) # last word has size 0
-    return words
+static func _load_lines(path: String) -> PackedStringArray:
+    var file = FileAccess.open(path, FileAccess.READ)
+    var file_content = file.get_as_text(true)
+    var lines = file_content.split("\n")
+    lines.remove_at(lines.size() - 1) # last word has size 0
+    return lines
+
+
+static func _load_monkeytype_words(filepath: String) -> PackedStringArray:
+    var file = FileAccess.open(filepath, FileAccess.READ)
+    var file_content = file.get_as_text()
+    var json = JSON.new()
+    var error = json.parse(file_content)
+    if error != OK:
+        printerr("JSON Parse Error: ", json.get_error_message(), " in ", filepath, " at line ", json.get_error_line())
+        return ["error"]
+
+    if not json.data.has("words"):
+        printerr("JSON: ", filepath, " does not contains words (expected dict with key 'words' and array of strings as value)")
+        return ["error"]
+
+    return json.data["words"]
 
 
 static func _build_alphabet_dict(alphabet: PackedStringArray) -> Dictionary:
