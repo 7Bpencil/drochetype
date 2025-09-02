@@ -43,7 +43,7 @@ func set_data(data: TypingData, config: TypingConfig):
 
 func _on_test_language_selected(index: int):
     typing_config.test_language = index as TypingData.TestLanguage
-    typing_config.include_letter = 0
+    typing_config.include_letter = -1
     test_language_foldable.folded = true
     _rebuild_ui()
     generate_new_test.emit()
@@ -51,7 +51,7 @@ func _on_test_language_selected(index: int):
 
 func _on_test_type_selected(index: int):
     typing_config.test_type = index as TypingData.TestType
-    typing_config.include_letter = 0
+    typing_config.include_letter = -1
     test_type_foldable.folded = true
     _rebuild_ui()
     generate_new_test.emit()
