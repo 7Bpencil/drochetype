@@ -157,7 +157,7 @@ static func _load_language(path: String) -> PackedStringArray:
     return words
 
 
-static func _build_alphabet_dict(alphabet: PackedStringArray):
+static func _build_alphabet_dict(alphabet: PackedStringArray) -> Dictionary:
     var result = {}
     for i in range(alphabet.size()):
         var letter = alphabet[i]
@@ -166,7 +166,7 @@ static func _build_alphabet_dict(alphabet: PackedStringArray):
     return result
 
 
-static func _filter_words(words: Dictionary, alphabet: PackedStringArray):
+static func _filter_words(words: Dictionary, alphabet: PackedStringArray) -> Dictionary:
     var result = {}
     for word_rarity in words:
         var all_words = words[word_rarity]
@@ -175,7 +175,7 @@ static func _filter_words(words: Dictionary, alphabet: PackedStringArray):
     return result
 
 
-static func _filter_words_per_letter(all_words: PackedStringArray, alphabet: PackedStringArray):
+static func _filter_words_per_letter(all_words: PackedStringArray, alphabet: PackedStringArray) -> Dictionary:
     var result: Dictionary = {}
     for letter in alphabet:
         result[letter] = []
