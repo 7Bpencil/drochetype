@@ -125,7 +125,7 @@ func get_next_word() -> String:
             return "error"
 
 
-func _get_next_natural_language_word(language_data: NaturalLanguageData) -> String:
+func _get_next_natural_language_word(language_data: TypingDataNaturalLanguage) -> String:
     match typing_config.test_type:
         TypingData.TestType.Letters:
             return _generate_word_from_available_word_tokens()

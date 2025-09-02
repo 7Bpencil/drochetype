@@ -101,31 +101,29 @@ static func cache() -> void:
     var numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     var symbols = ["+", "-", "*", "/", "\\", ",", ".", "=", "!", "?", "_", "%", "@", "$", "|", "&", "#", ":", ";", "^", "(", ")", "{", "}", "[", "]", "<", ">", "\"", "'", "`", "~"]
 
-    var english = NaturalLanguageData.new()
+    var english = TypingDataNaturalLanguage.new()
+    var english_config = TypingDataNaturalLanguageConfig.new()
+    english_config.alphabet          = "res://Data/english_alphabet.txt"
+    english_config.bigrams           = "res://Data/english_bigrams.txt"
+    english_config.trigrams          = "res://Data/english_trigrams.txt"
+    english_config.words_very_common = "res://Data/english.json"
+    english_config.words_common      = "res://Data/english_1k.json"
+    english_config.words_rare        = "res://Data/english_25k.json"
+    english_config.words_very_rare   = "res://Data/english_450k.json"
     var english_thread = Thread.new()
-    english_thread.start(_load_natural_language.bind(
-        english,
-        "res://Data/english_alphabet.txt",
-        "res://Data/english_bigrams.txt",
-        "res://Data/english_trigrams.txt",
-        "res://Data/english.json",
-        "res://Data/english_1k.json",
-        "res://Data/english_25k.json",
-        "res://Data/english_450k.json"
-    ))
+    english_thread.start(_load_natural_language.bind(english, english_config))
 
-    var russian = NaturalLanguageData.new()
+    var russian = TypingDataNaturalLanguage.new()
+    var russian_config = TypingDataNaturalLanguageConfig.new()
+    russian_config.alphabet          = "res://Data/russian_alphabet.txt"
+    russian_config.bigrams           = "res://Data/russian_bigrams.txt"
+    russian_config.trigrams          = "res://Data/russian_trigrams.txt"
+    russian_config.words_very_common = "res://Data/russian.json"
+    russian_config.words_common      = "res://Data/russian_1k.json"
+    russian_config.words_rare        = "res://Data/russian_25k.json"
+    russian_config.words_very_rare   = "res://Data/russian_375k.json"
     var russian_thread = Thread.new()
-    russian_thread.start(_load_natural_language.bind(
-        russian,
-        "res://Data/russian_alphabet.txt",
-        "res://Data/russian_bigrams.txt",
-        "res://Data/russian_trigrams.txt",
-        "res://Data/russian.json",
-        "res://Data/russian_1k.json",
-        "res://Data/russian_25k.json",
-        "res://Data/russian_375k.json"
-    ))
+    russian_thread.start(_load_natural_language.bind(russian, russian_config))
 
     english_thread.wait_to_finish()
     russian_thread.wait_to_finish()
@@ -153,25 +151,16 @@ static func cache() -> void:
     print("Cached data successfully")
 
 
-static func _load_natural_language(
-    result: NaturalLanguageData,
-    alphabet_path: String,
-    bigrams_path: String,
-    trigrams_path: String,
-    words_very_common_path: String,
-    words_common_path: String,
-    words_rare_path: String,
-    words_very_rare_path: String
-):
-    result.alphabet                       = _load_lines(alphabet_path)
+static func _load_natural_language(result: TypingDataNaturalLanguage, config: TypingDataNaturalLanguageConfig):
+    result.alphabet                       = _load_lines(config.alphabet)
     result.alphabet_dict                  = _build_alphabet_dict(result.alphabet)
-    result.bigrams                        = _load_lines(bigrams_path)
-    result.trigrams                       = _load_lines(trigrams_path)
+    result.bigrams                        = _load_lines(config.bigrams)
+    result.trigrams                       = _load_lines(config.trigrams)
     result.words = {
-        TypingData.WordsRarity.VeryCommon : _load_monkeytype_words(words_very_common_path),
-        TypingData.WordsRarity.Common     : _load_monkeytype_words(words_common_path),
-        TypingData.WordsRarity.Rare       : _load_monkeytype_words(words_rare_path),
-        TypingData.WordsRarity.VeryRare   : _load_monkeytype_words(words_very_rare_path),
+        TypingData.WordsRarity.VeryCommon : _load_monkeytype_words(config.words_very_common),
+        TypingData.WordsRarity.Common     : _load_monkeytype_words(config.words_common),
+        TypingData.WordsRarity.Rare       : _load_monkeytype_words(config.words_rare),
+        TypingData.WordsRarity.VeryRare   : _load_monkeytype_words(config.words_very_rare),
     }
     result.words_per_letter               = _filter_words_per_letter(result.words, result.alphabet)
 
