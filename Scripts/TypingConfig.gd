@@ -8,8 +8,7 @@ class_name TypingConfig extends Resource
 @export var language_configs: Dictionary
 @export var test_size: TypingData.TestSize
 
-# TODO move it to user://save.bin
-const _save_file_path: String = "res://save.bin"
+const _save_file_path: String = "user://save.bin"
 
 
 static func load() -> TypingConfig:
