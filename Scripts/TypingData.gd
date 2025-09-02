@@ -247,7 +247,7 @@ static func _filter_words_per_letter_inner(all_words: PackedStringArray, alphabe
             if not result.has(letter):
                 continue
 
-            # do not include word multiple times because it has repeating characters
+            # prevent including word multiple times if it has repeating characters
             if letter_cache.has(letter):
                 continue
 
