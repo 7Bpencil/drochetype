@@ -147,6 +147,7 @@ static func cache() -> void:
 
     var file = FileAccess.open_compressed(_cache_file_path, FileAccess.WRITE, FileAccess.CompressionMode.COMPRESSION_ZSTD)
     file.store_var(typing_data, true)
+    print("Cached data successfully")
 
 
 static func _load_lines(path: String) -> PackedStringArray:
@@ -160,6 +161,10 @@ static func _load_lines(path: String) -> PackedStringArray:
 static func _load_monkeytype_words(filepath: String) -> PackedStringArray:
     var file = FileAccess.open(filepath, FileAccess.READ)
     var file_content = file.get_as_text()
+    # some words have capital letters in them, I don't like it.
+    # so, just lower an entire file, its much faster than lowering each word separately
+    file_content = file_content.to_lower()
+
     var json = JSON.new()
     var error = json.parse(file_content)
     if error != OK:
@@ -170,7 +175,19 @@ static func _load_monkeytype_words(filepath: String) -> PackedStringArray:
         printerr("JSON: ", filepath, " does not contains words (expected dict with key 'words' and array of strings as value)")
         return ["error"]
 
-    return json.data["words"]
+    var words = json.data["words"]
+    var i: int = 0
+    while i < words.size():
+        var word = words[i]
+        # not interested in one letter words
+        if word.length() < 2:
+            var last_element_index = words.size() - 1
+            words[i] = words[last_element_index]
+            words.remove_at(last_element_index)
+        else:
+            i += 1
+
+    return words
 
 
 static func _build_alphabet_dict(alphabet: PackedStringArray) -> Dictionary:
