@@ -180,7 +180,9 @@ static func _load_lines(path: String) -> PackedStringArray:
     var file = FileAccess.open(path, FileAccess.READ)
     var file_content = file.get_as_text(true)
     var lines = file_content.split("\n")
-    lines.remove_at(lines.size() - 1) # last word has size 0
+    var last_line_index = lines.size() - 1
+    if lines[last_line_index].length() == 0:
+        lines.remove_at(last_line_index)
     return lines
 
 
