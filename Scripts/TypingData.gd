@@ -101,31 +101,25 @@ static func cache() -> void:
     var numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     var symbols = ["+", "-", "*", "/", "\\", ",", ".", "=", "!", "?", "_", "%", "@", "$", "|", "&", "#", ":", ";", "^", "(", ")", "{", "}", "[", "]", "<", ">", "\"", "'", "`", "~"]
 
-    var english = NaturalLanguageData.new()
-    english.alphabet                      = _load_lines("res://Data/english_alphabet.txt")
-    english.alphabet_dict                 = _build_alphabet_dict(english.alphabet)
-    english.bigrams                       = _load_lines("res://Data/english_bigrams.txt")
-    english.trigrams                      = _load_lines("res://Data/english_trigrams.txt")
-    english.words = {
-        TypingData.WordsRarity.VeryCommon : _load_monkeytype_words("res://Data/english.json"),
-        TypingData.WordsRarity.Common     : _load_monkeytype_words("res://Data/english_1k.json"),
-        TypingData.WordsRarity.Rare       : _load_monkeytype_words("res://Data/english_25k.json"),
-        TypingData.WordsRarity.VeryRare   : _load_monkeytype_words("res://Data/english_450k.json"),
-    }
-    english.words_per_letter              = _filter_words_per_letter(english.words, english.alphabet)
+    var english = _load_natural_language(
+        "res://Data/english_alphabet.txt",
+        "res://Data/english_bigrams.txt",
+        "res://Data/english_trigrams.txt",
+        "res://Data/english.json",
+        "res://Data/english_1k.json",
+        "res://Data/english_25k.json",
+        "res://Data/english_450k.json"
+    )
 
-    var russian = NaturalLanguageData.new()
-    russian.alphabet                      = _load_lines("res://Data/russian_alphabet.txt")
-    russian.alphabet_dict                 = _build_alphabet_dict(russian.alphabet)
-    russian.bigrams                       = _load_lines("res://Data/russian_bigrams.txt")
-    russian.trigrams                      = _load_lines("res://Data/russian_trigrams.txt")
-    russian.words = {
-        TypingData.WordsRarity.VeryCommon : _load_monkeytype_words("res://Data/russian.json"),
-        TypingData.WordsRarity.Common     : _load_monkeytype_words("res://Data/russian_1k.json"),
-        TypingData.WordsRarity.Rare       : _load_monkeytype_words("res://Data/russian_25k.json"),
-        TypingData.WordsRarity.VeryRare   : _load_monkeytype_words("res://Data/russian_375k.json"),
-    }
-    russian.words_per_letter              = _filter_words_per_letter(russian.words, russian.alphabet)
+    var russian = _load_natural_language(
+        "res://Data/russian_alphabet.txt",
+        "res://Data/russian_bigrams.txt",
+        "res://Data/russian_trigrams.txt",
+        "res://Data/russian.json",
+        "res://Data/russian_1k.json",
+        "res://Data/russian_25k.json",
+        "res://Data/russian_375k.json"
+    )
 
     typing_data.languages = {
         TypingData.TestLanguage.Numbers : numbers,
@@ -148,6 +142,30 @@ static func cache() -> void:
     var file = FileAccess.open_compressed(_cache_file_path, FileAccess.WRITE, FileAccess.CompressionMode.COMPRESSION_ZSTD)
     file.store_var(typing_data, true)
     print("Cached data successfully")
+
+
+static func _load_natural_language(
+    alphabet_path: String,
+    bigrams_path: String,
+    trigrams_path: String,
+    words_very_common_path: String,
+    words_common_path: String,
+    words_rare_path: String,
+    words_very_rare_path: String) -> NaturalLanguageData:
+
+    var result = NaturalLanguageData.new()
+    result.alphabet                       = _load_lines(alphabet_path)
+    result.alphabet_dict                  = _build_alphabet_dict(result.alphabet)
+    result.bigrams                        = _load_lines(bigrams_path)
+    result.trigrams                       = _load_lines(trigrams_path)
+    result.words = {
+        TypingData.WordsRarity.VeryCommon : _load_monkeytype_words(words_very_common_path),
+        TypingData.WordsRarity.Common     : _load_monkeytype_words(words_common_path),
+        TypingData.WordsRarity.Rare       : _load_monkeytype_words(words_rare_path),
+        TypingData.WordsRarity.VeryRare   : _load_monkeytype_words(words_very_rare_path),
+    }
+    result.words_per_letter               = _filter_words_per_letter(result.words, result.alphabet)
+    return result
 
 
 static func _load_lines(path: String) -> PackedStringArray:
