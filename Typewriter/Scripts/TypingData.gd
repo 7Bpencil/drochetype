@@ -103,25 +103,25 @@ static func cache() -> void:
 
     var english = TypingDataNaturalLanguage.new()
     var english_config = TypingDataNaturalLanguageConfig.new()
-    english_config.alphabet          = "res://Data/english_alphabet.txt"
-    english_config.bigrams           = "res://Data/english_bigrams.txt"
-    english_config.trigrams          = "res://Data/english_trigrams.txt"
-    english_config.words_very_common = "res://Data/english.json"
-    english_config.words_common      = "res://Data/english_1k.json"
-    english_config.words_rare        = "res://Data/english_25k.json"
-    english_config.words_very_rare   = "res://Data/english_450k.json"
+    english_config.alphabet          = "res://Typewriter/Data/english_alphabet.txt"
+    english_config.bigrams           = "res://Typewriter/Data/english_bigrams.txt"
+    english_config.trigrams          = "res://Typewriter/Data/english_trigrams.txt"
+    english_config.words_very_common = "res://Typewriter/Data/english.json"
+    english_config.words_common      = "res://Typewriter/Data/english_1k.json"
+    english_config.words_rare        = "res://Typewriter/Data/english_25k.json"
+    english_config.words_very_rare   = "res://Typewriter/Data/english_450k.json"
     var english_thread = Thread.new()
     english_thread.start(_load_natural_language.bind(english, english_config))
 
     var russian = TypingDataNaturalLanguage.new()
     var russian_config = TypingDataNaturalLanguageConfig.new()
-    russian_config.alphabet          = "res://Data/russian_alphabet.txt"
-    russian_config.bigrams           = "res://Data/russian_bigrams.txt"
-    russian_config.trigrams          = "res://Data/russian_trigrams.txt"
-    russian_config.words_very_common = "res://Data/russian.json"
-    russian_config.words_common      = "res://Data/russian_1k.json"
-    russian_config.words_rare        = "res://Data/russian_25k.json"
-    russian_config.words_very_rare   = "res://Data/russian_375k.json"
+    russian_config.alphabet          = "res://Typewriter/Data/russian_alphabet.txt"
+    russian_config.bigrams           = "res://Typewriter/Data/russian_bigrams.txt"
+    russian_config.trigrams          = "res://Typewriter/Data/russian_trigrams.txt"
+    russian_config.words_very_common = "res://Typewriter/Data/russian.json"
+    russian_config.words_common      = "res://Typewriter/Data/russian_1k.json"
+    russian_config.words_rare        = "res://Typewriter/Data/russian_25k.json"
+    russian_config.words_very_rare   = "res://Typewriter/Data/russian_375k.json"
     var russian_thread = Thread.new()
     russian_thread.start(_load_natural_language.bind(russian, russian_config))
 
