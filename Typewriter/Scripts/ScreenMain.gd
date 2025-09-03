@@ -70,7 +70,7 @@ func _on_include_letter_selected(index: int):
 
 
 func _on_learn_letters_selected(index: int, selected: bool):
-    var language_config = typing_config.language_configs[typing_config.test_language]
+    var language_config = typing_config.get_language_config()
     if selected:
         language_config.learn_letters[index] = true
         if language_config.learn_letters_target != -1:
@@ -90,7 +90,7 @@ func _on_learn_letters_clicked(index: int, at_position: Vector2, mouse_button_in
     if mouse_button_index != MOUSE_BUTTON_RIGHT:
         return
 
-    var language_config = typing_config.language_configs[typing_config.test_language]
+    var language_config = typing_config.get_language_config()
     if not language_config.learn_letters.has(index):
         return
 
@@ -134,7 +134,7 @@ func _rebuild_ui():
 
             if typing_config.test_type == TypingData.TestType.Letters:
                 learn_letters_foldable.visible = true
-                _rebuild_learn_letters(typing_data.languages[typing_config.test_language].alphabet, typing_config.language_configs[typing_config.test_language])
+                _rebuild_learn_letters(typing_data.languages[typing_config.test_language].alphabet, typing_config.get_language_config())
             else:
                 learn_letters_foldable.visible = false
 

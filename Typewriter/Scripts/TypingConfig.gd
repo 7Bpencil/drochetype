@@ -25,13 +25,19 @@ static func _create_default_config() -> TypingConfig:
     typing_config.test_type        = TypingData.TestType.Words
     typing_config.words_rarity     = TypingData.WordsRarity.VeryCommon
     typing_config.include_letter   = -1
-    typing_config.language_configs = {
-        TypingData.TestLanguage.English : TypingConfigNaturalLanguage.new(),
-        TypingData.TestLanguage.Russian : TypingConfigNaturalLanguage.new(),
-    }
+    typing_config.language_configs = {}
     typing_config.test_size        = TypingData.TestSize.Small
 
     return typing_config
+
+
+func get_language_config() -> TypingConfigNaturalLanguage:
+    if language_configs.has(test_language):
+        return language_configs[test_language]
+
+    var new_config = TypingConfigNaturalLanguage.new()
+    language_configs[test_language] = new_config
+    return new_config
 
 
 func save():

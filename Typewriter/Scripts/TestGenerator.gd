@@ -22,7 +22,7 @@ func _init(data: TypingData, config: TypingConfig):
 func generate_next_test() -> void:
     match typing_config.test_language:
         TypingData.TestLanguage.English, TypingData.TestLanguage.Russian when typing_config.test_type == TypingData.TestType.Letters:
-            var language_config = typing_config.language_configs[typing_config.test_language]
+            var language_config = typing_config.get_language_config()
             var language_data = typing_data.languages[typing_config.test_language]
             _collect_avalilable_word_tokens(language_config, language_data.alphabet, language_data.bigrams, language_data.trigrams)
 
