@@ -21,7 +21,7 @@ static func load() -> TypingConfig:
 
 static func _create_default_config() -> TypingConfig:
     var typing_config = TypingConfig.new()
-    typing_config.test_language    = TypingData.TestLanguage.English
+    typing_config.test_language    = TypingData.TestLanguage.Natural
     typing_config.test_type        = TypingData.TestType.Words
     typing_config.words_rarity     = TypingData.WordsRarity.VeryCommon
     typing_config.include_letter   = -1

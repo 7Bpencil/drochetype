@@ -113,30 +113,30 @@ func _on_test_size_selected(index: int):
 
 
 func _rebuild_ui():
-    match typing_config.test_language:
-        TypingData.TestLanguage.Numbers, TypingData.TestLanguage.Symbols:
-            test_type_foldable.visible = false
+    if typing_config.test_language == TypingData.TestLanguage.Numbers or typing_config.test_language == TypingData.TestLanguage.Symbols:
+        test_type_foldable.visible = false
+        words_rarity_foldable.visible = false
+        include_letter_foldable.visible = false
+        learn_letters_foldable.visible = false
+
+    if typing_config.test_language >= TypingData.TestLanguage.Natural:
+        test_type_foldable.visible = true
+        test_type.select(typing_config.test_type)
+
+        if typing_config.test_type == TypingData.TestType.Words:
+            words_rarity_foldable.visible = true
+            include_letter_foldable.visible = true
+            words_rarity.select(typing_config.words_rarity)
+            _rebuild_include_letter(typing_data.languages[typing_config.test_language].alphabet)
+        else:
             words_rarity_foldable.visible = false
             include_letter_foldable.visible = false
+
+        if typing_config.test_type == TypingData.TestType.Letters:
+            learn_letters_foldable.visible = true
+            _rebuild_learn_letters(typing_data.languages[typing_config.test_language].alphabet, typing_config.get_language_config())
+        else:
             learn_letters_foldable.visible = false
-        TypingData.TestLanguage.English, TypingData.TestLanguage.Russian:
-            test_type_foldable.visible = true
-            test_type.select(typing_config.test_type)
-
-            if typing_config.test_type == TypingData.TestType.Words:
-                words_rarity_foldable.visible = true
-                include_letter_foldable.visible = true
-                words_rarity.select(typing_config.words_rarity)
-                _rebuild_include_letter(typing_data.languages[typing_config.test_language].alphabet)
-            else:
-                words_rarity_foldable.visible = false
-                include_letter_foldable.visible = false
-
-            if typing_config.test_type == TypingData.TestType.Letters:
-                learn_letters_foldable.visible = true
-                _rebuild_learn_letters(typing_data.languages[typing_config.test_language].alphabet, typing_config.get_language_config())
-            else:
-                learn_letters_foldable.visible = false
 
     test_language.select(typing_config.test_language)
     test_size.select(typing_config.test_size)

@@ -3,8 +3,7 @@ class_name TypingData extends Resource
 enum TestLanguage {
     Numbers,
     Symbols,
-    English,
-    Russian,
+    Natural # there can be multiple natural languages, we assume that all of them are placed after symbols language
 }
 
 enum TestType {

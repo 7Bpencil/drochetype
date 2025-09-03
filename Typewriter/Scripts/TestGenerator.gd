@@ -20,11 +20,10 @@ func _init(data: TypingData, config: TypingConfig):
 
 
 func generate_next_test() -> void:
-    match typing_config.test_language:
-        TypingData.TestLanguage.English, TypingData.TestLanguage.Russian when typing_config.test_type == TypingData.TestType.Letters:
-            var language_config = typing_config.get_language_config()
-            var language_data = typing_data.languages[typing_config.test_language]
-            _collect_avalilable_word_tokens(language_config, language_data.alphabet, language_data.bigrams, language_data.trigrams)
+    if typing_config.test_language >= TypingData.TestLanguage.Natural and typing_config.test_type == TypingData.TestType.Letters:
+        var language_config = typing_config.get_language_config()
+        var language_data = typing_data.languages[typing_config.test_language]
+        _collect_avalilable_word_tokens(language_config, language_data.alphabet, language_data.bigrams, language_data.trigrams)
 
 
 func _collect_avalilable_word_tokens(language_config: TypingConfigNaturalLanguage, alphabet: PackedStringArray, bigrams: PackedStringArray, trigrams: PackedStringArray):
@@ -114,15 +113,13 @@ class LetterTokens:
 
 
 func get_next_word() -> String:
-    match typing_config.test_language:
-        TypingData.TestLanguage.Numbers:
-            return _construct_random_word(6, typing_data.languages[TypingData.TestLanguage.Numbers])
-        TypingData.TestLanguage.Symbols:
-            return _construct_random_word(4, typing_data.languages[TypingData.TestLanguage.Symbols])
-        TypingData.TestLanguage.English, TypingData.TestLanguage.Russian:
-            return _get_next_natural_language_word(typing_data.languages[typing_config.test_language])
-        _:
-            return "error"
+    if typing_config.test_language == TypingData.TestLanguage.Numbers:
+        return _construct_random_word(6, typing_data.languages[TypingData.TestLanguage.Numbers])
+    if typing_config.test_language == TypingData.TestLanguage.Symbols:
+        return _construct_random_word(4, typing_data.languages[TypingData.TestLanguage.Symbols])
+    if typing_config.test_language >= TypingData.TestLanguage.Natural:
+        return _get_next_natural_language_word(typing_data.languages[typing_config.test_language])
+    return "error"
 
 
 func _get_next_natural_language_word(language_data: TypingDataNaturalLanguage) -> String:
