@@ -28,9 +28,10 @@ enum TestSize {
     Large,
 }
 
-@export var languages: Dictionary
-@export var test_sizes: Dictionary
+@export var languages: Array
+@export var test_sizes: Array
 @export var keycodes: Dictionary
+
 
 const _cache_file_path: String = "res://data.bin"
 const _data_filepath: String = "res://Typewriter/Data/"
@@ -103,19 +104,12 @@ static func cache() -> void:
     var symbols = ["+", "-", "*", "/", "\\", ",", ".", "=", "!", "?", "_", "%", "@", "$", "|", "&", "#", ":", ";", "^", "(", ")", "{", "}", "[", "]", "<", ">", "\"", "'", "`", "~"]
     var natural_languages = _load_natural_languages()
 
-    typing_data.languages = {
-        TypingData.TestLanguage.Numbers : numbers,
-        TypingData.TestLanguage.Symbols : symbols,
-        TypingData.TestLanguage.English : natural_languages[0],
-        TypingData.TestLanguage.Russian : natural_languages[1],
-    }
+    typing_data.languages.append(numbers)
+    typing_data.languages.append(symbols)
+    for natural_language in natural_languages:
+        typing_data.languages.append(natural_language)
 
-    typing_data.test_sizes = {
-        TypingData.TestSize.VerySmall : 1,
-        TypingData.TestSize.Small     : 3,
-        TypingData.TestSize.Medium    : 6,
-        TypingData.TestSize.Large     : 12,
-    }
+    typing_data.test_sizes = [1, 3, 6, 12]
 
     typing_data.keycodes = {}
     for keycode in _keycodes_array:
