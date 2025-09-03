@@ -189,7 +189,7 @@ static func _load_monkeytype_words(filepath: String) -> PackedStringArray:
         return ["error"]
 
     if not json.data.has("words"):
-        printerr("JSON: ", filepath, " does not contains words (expected dict with key 'words' and array of strings as value)")
+        printerr("JSON: ", filepath, " does not contain words (expected dict with key 'words' and array of strings as value)")
         return ["error"]
 
     var words = json.data["words"]
