@@ -38,6 +38,9 @@ func _ready():
 func set_data(data: TypingData, config: TypingConfig):
     typing_data = data
     typing_config = config
+    for i in range(TypingData.TestLanguage.Natural, typing_data.languages.size()):
+        var natural_language = typing_data.languages[i]
+        test_language.add_item(natural_language.name)
     _rebuild_ui()
 
 

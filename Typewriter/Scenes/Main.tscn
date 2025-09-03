@@ -253,11 +253,9 @@ layout_mode = 2
 allow_search = false
 auto_width = true
 auto_height = true
-item_count = 4
+item_count = 2
 item_0/text = "numbers"
 item_1/text = "symbols"
-item_2/text = "english"
-item_3/text = "russian"
 
 [node name="TestType" type="FoldableContainer" parent="ScreenMain/Settings"]
 custom_minimum_size = Vector2(100, 0)
