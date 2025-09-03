@@ -33,7 +33,8 @@ enum TestSize {
 @export var keycodes: Dictionary
 
 const _cache_file_path: String = "res://data.bin"
-
+const _data_filepath: String = "res://Typewriter/Data/"
+const _natural_language_configs_path: String = "res://Typewriter/Data/languages.json"
 const _keycodes_array: Array[Key] = [
     # alphabet
     KEY_A,
@@ -100,39 +101,13 @@ static func cache() -> void:
 
     var numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     var symbols = ["+", "-", "*", "/", "\\", ",", ".", "=", "!", "?", "_", "%", "@", "$", "|", "&", "#", ":", ";", "^", "(", ")", "{", "}", "[", "]", "<", ">", "\"", "'", "`", "~"]
-
-    var english = TypingDataNaturalLanguage.new()
-    var english_config = TypingDataNaturalLanguageConfig.new()
-    english_config.alphabet          = "res://Typewriter/Data/english_alphabet.txt"
-    english_config.bigrams           = "res://Typewriter/Data/english_bigrams.txt"
-    english_config.trigrams          = "res://Typewriter/Data/english_trigrams.txt"
-    english_config.words_very_common = "res://Typewriter/Data/english.json"
-    english_config.words_common      = "res://Typewriter/Data/english_1k.json"
-    english_config.words_rare        = "res://Typewriter/Data/english_25k.json"
-    english_config.words_very_rare   = "res://Typewriter/Data/english_450k.json"
-    var english_thread = Thread.new()
-    english_thread.start(_load_natural_language.bind(english, english_config))
-
-    var russian = TypingDataNaturalLanguage.new()
-    var russian_config = TypingDataNaturalLanguageConfig.new()
-    russian_config.alphabet          = "res://Typewriter/Data/russian_alphabet.txt"
-    russian_config.bigrams           = "res://Typewriter/Data/russian_bigrams.txt"
-    russian_config.trigrams          = "res://Typewriter/Data/russian_trigrams.txt"
-    russian_config.words_very_common = "res://Typewriter/Data/russian.json"
-    russian_config.words_common      = "res://Typewriter/Data/russian_1k.json"
-    russian_config.words_rare        = "res://Typewriter/Data/russian_25k.json"
-    russian_config.words_very_rare   = "res://Typewriter/Data/russian_375k.json"
-    var russian_thread = Thread.new()
-    russian_thread.start(_load_natural_language.bind(russian, russian_config))
-
-    english_thread.wait_to_finish()
-    russian_thread.wait_to_finish()
+    var natural_languages = _load_natural_languages()
 
     typing_data.languages = {
         TypingData.TestLanguage.Numbers : numbers,
         TypingData.TestLanguage.Symbols : symbols,
-        TypingData.TestLanguage.English : english,
-        TypingData.TestLanguage.Russian : russian,
+        TypingData.TestLanguage.English : natural_languages[0],
+        TypingData.TestLanguage.Russian : natural_languages[1],
     }
 
     typing_data.test_sizes = {
@@ -151,16 +126,67 @@ static func cache() -> void:
     print("Cached data successfully")
 
 
-static func _load_natural_language(result: TypingDataNaturalLanguage, config: TypingDataNaturalLanguageConfig):
-    result.alphabet                       = _load_lines(config.alphabet)
+static func _load_natural_languages() -> Array[TypingDataNaturalLanguage]:
+    var natural_language_configs = _load_natural_language_configs(_natural_language_configs_path)
+    var natural_languages: Array[TypingDataNaturalLanguage] = []
+    var natural_languages_loading_threads: Array[Thread] = []
+
+    natural_languages.resize(natural_language_configs.size())
+    natural_languages_loading_threads.resize(natural_language_configs.size())
+
+    for i in range(natural_language_configs.size()):
+        var natural_language_data = TypingDataNaturalLanguage.new()
+        var natural_language_config = natural_language_configs[i]
+        var natural_language_loading_thread = Thread.new()
+        natural_languages[i] = natural_language_data
+        natural_languages_loading_threads[i] = natural_language_loading_thread
+        natural_language_loading_thread.start(_load_natural_language_data.bind(natural_language_data, natural_language_config))
+
+    for natural_language_loading_thread in natural_languages_loading_threads:
+        natural_language_loading_thread.wait_to_finish()
+
+    return natural_languages
+
+
+static func _load_natural_language_configs(filepath: String) -> Array[TypingDataNaturalLanguageConfig]:
+    var file = FileAccess.open(filepath, FileAccess.READ)
+    var file_content = file.get_as_text()
+
+    var json = JSON.new()
+    var error = json.parse(file_content)
+    if error != OK:
+        printerr("JSON Parse Error: ", json.get_error_message(), " in ", filepath, " at line ", json.get_error_line())
+        return []
+
+    var json_configs = json.data
+    if not json_configs is Array:
+        printerr("JSON: ", filepath, " does not contain array (expected array of dicts)")
+        return []
+
+    var result: Array[TypingDataNaturalLanguageConfig] = []
+    result.resize(json_configs.size())
+    for i in range(json_configs.size()):
+        var json_config = json_configs[i]
+        if not json_config is Dictionary:
+            printerr("JSON: ", filepath, " array element: ", i, " is not dict (expected array of dicts)")
+            return []
+
+        result[i] = TypingDataNaturalLanguageConfig.from_json_dict(json_config)
+
+    return result
+
+
+static func _load_natural_language_data(result: TypingDataNaturalLanguage, config: TypingDataNaturalLanguageConfig):
+    result.name                           = config.name
+    result.alphabet                       = _load_lines(_data_filepath + config.alphabet)
     result.alphabet_dict                  = _build_alphabet_dict(result.alphabet)
-    result.bigrams                        = _load_lines(config.bigrams)
-    result.trigrams                       = _load_lines(config.trigrams)
+    result.bigrams                        = _load_lines(_data_filepath + config.bigrams)
+    result.trigrams                       = _load_lines(_data_filepath + config.trigrams)
     result.words = {
-        TypingData.WordsRarity.VeryCommon : _load_monkeytype_words(config.words_very_common),
-        TypingData.WordsRarity.Common     : _load_monkeytype_words(config.words_common),
-        TypingData.WordsRarity.Rare       : _load_monkeytype_words(config.words_rare),
-        TypingData.WordsRarity.VeryRare   : _load_monkeytype_words(config.words_very_rare),
+        TypingData.WordsRarity.VeryCommon : _load_monkeytype_words(_data_filepath + config.words_very_common),
+        TypingData.WordsRarity.Common     : _load_monkeytype_words(_data_filepath + config.words_common),
+        TypingData.WordsRarity.Rare       : _load_monkeytype_words(_data_filepath + config.words_rare),
+        TypingData.WordsRarity.VeryRare   : _load_monkeytype_words(_data_filepath + config.words_very_rare),
     }
     result.words_per_letter               = _filter_words_per_letter(result.words, result.alphabet)
 

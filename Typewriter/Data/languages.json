@@ -1,0 +1,23 @@
+[
+    {
+        "name": "english",
+        "alphabet": "english_alphabet.txt",
+        "bigrams": "english_bigrams.txt",
+        "trigrams": "english_trigrams.txt",
+        "words_very_common": "english.json",
+        "words_common": "english_1k.json",
+        "words_rare": "english_25k.json",
+        "words_very_rare": "english_450k.json"
+    },
+    {
+        "name": "russian",
+        "alphabet": "russian_alphabet.txt",
+        "bigrams": "russian_bigrams.txt",
+        "trigrams": "russian_trigrams.txt",
+        "words_very_common": "russian.json",
+        "words_common": "russian_1k.json",
+        "words_rare": "russian_25k.json",
+        "words_very_rare": "russian_375k.json"
+    }
+]
+
