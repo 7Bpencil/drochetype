@@ -27,12 +27,20 @@ I provide compiled binary for Windows, users on other platforms can either [laun
 
 ## Adding More Languages
 
-Numbers and Symbols languages are hardcoded, others can be added relatively easily by modifying Typewriter/Data/languages.json and providing according data. Some features require data preprocessing so to reduce app startup time we cache all needed data beforehand with [CacheData.gd script](https://docs.godotengine.org/en/4.4/tutorials/plugins/running_code_in_the_editor.html#running-one-off-scripts-using-editorscript).
+Numbers and Symbols languages are hardcoded, others can be added relatively easily by modifying Typewriter/Data/languages.json and providing according data.    
+Some features require data preprocessing so to reduce app startup time we cache all needed data beforehand with [CacheData.gd script](https://docs.godotengine.org/en/4.4/tutorials/plugins/running_code_in_the_editor.html#running-one-off-scripts-using-editorscript).
 
 ## Build
 
 Requirements: Godot v4.5.beta7 or higher      
-Check official [export guide](https://docs.godotengine.org/en/stable/tutorials/export/exporting_projects.html)
+Check official [export guide](https://docs.godotengine.org/en/stable/tutorials/export/exporting_projects.html)    
+Default export template produces unnecessary big binary, its possible to build smaller one with custom template, check this links for more info:    
+- <https://popcar.bearblog.dev/how-to-minify-godots-build-size/>    
+- <https://docs.godotengine.org/en/latest/contributing/development/compiling/index.html>    
+- <https://docs.godotengine.org/en/stable/contributing/development/compiling/optimizing_for_size.html>    
+
+I find these template parameters good enough:   
+'target=template_release debug_symbols=no optimize=size_extra lto=full disable_3d=yes'
 
 ## Copywrite
 
