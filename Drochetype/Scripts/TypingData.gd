@@ -33,8 +33,8 @@ enum TestSize {
 
 
 const _cache_file_path: String = "res://data.bin"
-const _data_filepath: String = "res://Typewriter/Data/"
-const _natural_language_configs_path: String = "res://Typewriter/Data/languages.json"
+const _data_filepath: String = "res://Drochetype/Data/"
+const _natural_language_configs_path: String = "res://Drochetype/Data/languages.json"
 const _keycodes_array: Array[Key] = [
     # alphabet
     KEY_A,

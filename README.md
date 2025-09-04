@@ -27,8 +27,8 @@ I provide compiled binary for Windows, users on other platforms can either [laun
 
 ## Adding More Languages
 
-Numbers and Symbols languages are hardcoded, others can be added relatively easily by modifying Typewriter/Data/languages.json and providing according data.    
-Some features require data preprocessing so, to reduce app startup time we cache all needed data beforehand with [Typewriter/Scripts/CacheData.gd script](https://docs.godotengine.org/en/4.4/tutorials/plugins/running_code_in_the_editor.html#running-one-off-scripts-using-editorscript).
+Numbers and Symbols languages are hardcoded, others can be added relatively easily by modifying Drochetype/Data/languages.json and providing according data.    
+Some features require data preprocessing so, to reduce app startup time we cache all needed data beforehand with [Drochetype/Scripts/CacheData.gd script](https://docs.godotengine.org/en/4.4/tutorials/plugins/running_code_in_the_editor.html#running-one-off-scripts-using-editorscript).
 
 ## Build
 
@@ -44,7 +44,7 @@ These template parameters should be good enough:
 
 ## Copywrite
 
-Typewriter     
+Drochetype     
 Copyright (C) 2025 Edward Starkov <https://github.com/7Bpencil>   
 Released under the GNU General Public License version 3:    
 
@@ -62,14 +62,14 @@ Released under the GNU General Public License version 3:
     along with this program. If not, see <https://www.gnu.org/licenses/>.              
 
 ---------------------------------------------------------------
-Typewriter/Data/english.json        
-Typewriter/Data/english_1k.json        
-Typewriter/Data/english_25k.json        
-Typewriter/Data/english_450k.json        
-Typewriter/Data/russian.json        
-Typewriter/Data/russian_1k.json        
-Typewriter/Data/russian_25k.json        
-Typewriter/Data/russian_375k.json        
+Drochetype/Data/english.json        
+Drochetype/Data/english_1k.json        
+Drochetype/Data/english_25k.json        
+Drochetype/Data/english_450k.json        
+Drochetype/Data/russian.json        
+Drochetype/Data/russian_1k.json        
+Drochetype/Data/russian_25k.json        
+Drochetype/Data/russian_375k.json        
 
 Copywrite (C) <https://github.com/monkeytypegame>    
 Released under the GNU General Public License version 3.
