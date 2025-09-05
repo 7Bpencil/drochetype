@@ -10,7 +10,7 @@ The idea was to combine features I found useful from [Typing Practice (keybr.com
 - Words of different rarity (english 200, english 1k, etc)
 - Filter words to include specific letter (to train rare letters like "J" or "Q", or to test how letter swaps in keyboard layout feel)
 - Bigrams and Trigrams
-- Learn letters one by one in your own order and pace
+- Learn letters one by one in your own order and pace (useful for learning touch-typing or new keyboard layouts)
 - Numbers mode
 - Symbols mode
 - WPM/CPM, time and accuracy meters after each test
