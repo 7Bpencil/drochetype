@@ -1,3 +1,5 @@
+![](previews/summary.png)
+
 ## About
 
 Standalone typing test app.   
