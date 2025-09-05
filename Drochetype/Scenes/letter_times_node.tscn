@@ -1,7 +1,0 @@
-[gd_scene format=3 uid="uid://bhyc5fy6gfeuh"]
-
-[node name="letter_times_node" type="ColorRect"]
-offset_right = 40.0
-offset_bottom = 200.0
-pivot_offset = Vector2(0, 200)
-color = Color(0.8862745, 0.7176471, 0.078431375, 1)
