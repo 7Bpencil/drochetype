@@ -29,6 +29,13 @@ I provide compiled binary for Windows, users on other platforms can either [laun
 
 ## Adding More Languages
 
+Currently supported languages: 
+
+- Numbers
+- Symbols
+- English
+- Russian
+
 Numbers and Symbols languages are hardcoded, others can be added relatively easily by modifying Drochetype/Data/languages.json and providing according data.    
 Some features require data preprocessing so, to reduce app startup time we cache all needed data beforehand with [Drochetype/Scripts/CacheData.gd script](https://docs.godotengine.org/en/4.4/tutorials/plugins/running_code_in_the_editor.html#running-one-off-scripts-using-editorscript).
 
