@@ -1,4 +1,4 @@
-![](previews/summary.png)
+![](Previews/summary.png)
 
 ## About
 
