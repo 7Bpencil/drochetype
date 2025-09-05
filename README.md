@@ -64,6 +64,7 @@ Released under the GNU General Public License version 3:
     along with this program. If not, see <https://www.gnu.org/licenses/>.              
 
 ---------------------------------------------------------------
+
 Drochetype/Data/english.json        
 Drochetype/Data/english_1k.json        
 Drochetype/Data/english_25k.json        
@@ -76,3 +77,14 @@ Drochetype/Data/russian_375k.json
 Copywrite (C) <https://github.com/monkeytypegame>    
 Released under the GNU General Public License version 3.
 
+---------------------------------------------------------------
+
+Drochetype/Fonts/Anonymous_Pro    
+
+Copyright (c) 2009, Mark Simonson (http://www.ms-studio.com, mark@marksimonson.com),   
+with Reserved Font Name Anonymous Pro.     
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.    
+
+This license is copied at Drochetype/Fonts/Anonymous_Pro/OFL.txt,   
+and is also available with a FAQ at: https://openfontlicense.org   
