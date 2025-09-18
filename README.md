@@ -25,7 +25,7 @@ The idea was to combine features I found useful from [Typing Practice (keybr.com
 ## Platforms
 
 Technically this is a game build on [Godot Engine](https://godotengine.org/), so it should run on all platforms supported by Godot.<br>
-I provide compiled binary for Windows, users on other platforms can either [launch project from Godot Editor](https://docs.godotengine.org/en/stable/tutorials/editor/project_manager.html) or [build project themselves](#build)
+I provide compiled binary for Windows, users on other platforms can either [launch project from Godot Editor](https://docs.godotengine.org/en/4.5/tutorials/editor/project_manager.html) or [build project themselves](#build)
 
 ## Adding More Languages
 
@@ -37,19 +37,19 @@ Currently supported languages:<br>
 - Russian
 
 Numbers and Symbols languages are hardcoded, others can be added relatively easily by modifying Drochetype/Data/languages.json and providing according data.<br>
-Some features require data preprocessing so, to reduce app startup time we cache all needed data beforehand with [Drochetype/Scripts/CacheData.gd script](https://docs.godotengine.org/en/4.4/tutorials/plugins/running_code_in_the_editor.html#running-one-off-scripts-using-editorscript).
+Some features require data preprocessing so, to reduce app startup time we cache all needed data beforehand with [Drochetype/Scripts/CacheData.gd script](https://docs.godotengine.org/en/4.5/tutorials/plugins/running_code_in_the_editor.html#running-one-off-scripts-using-editorscript).
 
 ## Build
 
-Requirements: Godot v4.5.beta7 or higher<br>
-Check official [export guide](https://docs.godotengine.org/en/stable/tutorials/export/exporting_projects.html)<br>
+Requirements: Godot 4.5<br>
+Check official [export guide](https://docs.godotengine.org/en/4.5/tutorials/export/exporting_projects.html)<br>
 Default export template produces unnecessary big binary, its possible to build smaller one with custom template, check these links for more info:<br>
+- <https://docs.godotengine.org/en/4.5/engine_details/development/compiling/index.html><br>
+- <https://docs.godotengine.org/en/4.5/engine_details/development/compiling/optimizing_for_size.html><br>
 - <https://popcar.bearblog.dev/how-to-minify-godots-build-size/><br>
-- <https://docs.godotengine.org/en/latest/contributing/development/compiling/index.html><br>
-- <https://docs.godotengine.org/en/stable/contributing/development/compiling/optimizing_for_size.html><br>
 
-These template parameters should be good enough:<br>
-`target=template_release debug_symbols=no optimize=size_extra lto=full disable_3d=yes`
+My build command for Windows:<br>
+`scons platform=windows target=template_release debug_symbols=no optimize=size_extra lto=full build_profile=../drochetype/export_profile_features.gdbuild`<br>
 
 ## Copywrite
 
