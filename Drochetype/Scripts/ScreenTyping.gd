@@ -295,10 +295,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _input(event):
-    if event is InputEventMouseMotion:
-        var movement = event.relative
-        if movement.x + movement.y > 0:
-            Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+    if event is InputEventMouseMotion and event.relative.length_squared() > 0:
+        Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 
 func _process(delta):
