@@ -312,7 +312,7 @@ item_2/text = "rare"
 item_3/text = "very rare"
 
 [node name="IncludeLetter" type="FoldableContainer" parent="ScreenMain/Settings" node_paths=PackedStringArray("foldable", "list")]
-custom_minimum_size = Vector2(145, 0)
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 focus_mode = 0
 folded = true
@@ -334,7 +334,7 @@ wraparound_items = false
 max_columns = 7
 
 [node name="LearnLetters" type="FoldableContainer" parent="ScreenMain/Settings" node_paths=PackedStringArray("foldable", "list")]
-custom_minimum_size = Vector2(145, 0)
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 focus_mode = 0
 folded = true
