@@ -33,8 +33,6 @@ var cursor_size: Vector2
 
 var goal_letters: PackedStringArray = []
 
-var is_shift_held: bool = false
-
 var is_running: bool = false
 var is_finished: bool = false
 var hit_first_letter: bool = false
@@ -215,13 +213,6 @@ func _calculate_letter_position(current_line_letter_index: int, line_index: int)
 
 func _unhandled_key_input(event: InputEvent) -> void:
     var event_keycode = event.keycode
-
-    if event_keycode == KEY_SHIFT:
-        if event.is_pressed():
-            is_shift_held = true
-        if event.is_released():
-            is_shift_held = false
-        return
 
     if not is_running:
         return
