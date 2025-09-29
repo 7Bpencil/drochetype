@@ -23,6 +23,11 @@ window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep_height"
 
+[gui]
+
+theme/default_font_subpixel_positioning=0
+theme/default_font_multichannel_signed_distance_field=true
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

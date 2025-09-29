@@ -16,9 +16,9 @@ Rendering=null
 antialiasing=1
 generate_mipmaps=false
 disable_embedded_bitmaps=true
-multichannel_signed_distance_field=false
-msdf_pixel_range=8
-msdf_size=48
+multichannel_signed_distance_field=true
+msdf_pixel_range=2
+msdf_size=64
 allow_system_fallback=true
 force_autohinter=false
 modulate_color_glyphs=false
@@ -34,7 +34,8 @@ preload=[{
 "chars": [],
 "glyphs": [],
 "name": "New Configuration",
-"size": Vector2i(16, 0)
+"size": Vector2i(16, 0),
+&"variation_embolden": 0.0
 }]
 language_support={}
 script_support={}
