@@ -31,11 +31,11 @@ font_color = Color(0.8862745, 0.7176471, 0.078431375, 1)
 [sub_resource type="Theme" id="Theme_erwvk"]
 MarginContainer/constants/margin_top = 5
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_me5cq"]
-bg_color = Color(0.4745098, 0.3764706, 0.023529412, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qh0nb"]
+bg_color = Color(0, 0, 0, 0.7529412)
 
 [sub_resource type="Theme" id="Theme_ib1f5"]
-TooltipPanel/styles/panel = SubResource("StyleBoxFlat_me5cq")
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_qh0nb")
 
 [sub_resource type="LabelSettings" id="LabelSettings_2w5on"]
 font = ExtResource("5_frkhe")
