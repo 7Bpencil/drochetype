@@ -13,10 +13,6 @@ var word_builder: Array[String]
 func _init(data: TypingData, config: TypingConfig):
     typing_data = data
     typing_config = config
-    available_word_tokens_per_letter = {}
-    available_word_tokens = []
-    available_word_tokens_copy = []
-    word_builder = []
 
 
 func generate_next_test() -> void:

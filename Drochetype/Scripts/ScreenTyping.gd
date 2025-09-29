@@ -27,21 +27,21 @@ var typing_config: TypingConfig
 
 var test_generator: TestGenerator
 var max_letters_count: int
-var letters: Array[Control] = []
+var letters: Array[Control]
 var letter_size: Vector2
 var cursor: Control
 var cursor_size: Vector2
 
-var goal_letters: PackedStringArray = []
+var goal_letters: PackedStringArray
 
-var is_running: bool = false
-var is_finished: bool = false
-var hit_first_letter: bool = false
-var input_letter_index: int = 0
-var real_keys_count: int = 0
-var real_mistakes_count: int = 0
-var start_test_time: int = 0
-var previous_key_time: int = 0
+var is_running: bool
+var is_finished: bool
+var hit_first_letter: bool
+var input_letter_index: int
+var real_keys_count: int
+var real_mistakes_count: int
+var start_test_time: int
+var previous_key_time: int
 var timer_previous_seconds: int = -1
 
 var test_layout: TypingLayout
