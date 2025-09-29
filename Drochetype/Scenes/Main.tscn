@@ -1,22 +1,23 @@
-[gd_scene load_steps=24 format=3 uid="uid://0kcwtttcr5bt"]
+[gd_scene load_steps=22 format=3 uid="uid://0kcwtttcr5bt"]
 
 [ext_resource type="LabelSettings" uid="uid://duxx0llfqminq" path="res://Drochetype/LabelSettings/goal.tres" id="2_idj7w"]
 [ext_resource type="Script" uid="uid://wcffn5nhpmis" path="res://Drochetype/Scripts/Main.gd" id="3_pbw6q"]
 [ext_resource type="Script" uid="uid://dangdinrwugo" path="res://Drochetype/Scripts/ScreenMain.gd" id="4_grg3l"]
-[ext_resource type="LabelSettings" uid="uid://8h1ifldhlctn" path="res://Drochetype/LabelSettings/timer_running.tres" id="5_erwvk"]
 [ext_resource type="FontFile" uid="uid://3rpi67lc1mec" path="res://Drochetype/Fonts/Anonymous_Pro/AnonymousPro-Regular.ttf" id="5_frkhe"]
 [ext_resource type="Script" uid="uid://duvg4f7oa8sc" path="res://Drochetype/Scripts/ScreenTyping.gd" id="6_1p5hy"]
-[ext_resource type="LabelSettings" uid="uid://73kyfg328cko" path="res://Drochetype/LabelSettings/timer_finished.tres" id="7_erwvk"]
 [ext_resource type="PackedScene" uid="uid://bio74pv4r10o8" path="res://Drochetype/Scenes/cursor.tscn" id="7_frkhe"]
 [ext_resource type="PackedScene" uid="uid://bw5ns0s8hkud1" path="res://Drochetype/Scenes/letter.tscn" id="7_h1m7h"]
 [ext_resource type="LabelSettings" uid="uid://ddupc3o2g4ctu" path="res://Drochetype/LabelSettings/correct.tres" id="8_erwvk"]
 [ext_resource type="LabelSettings" uid="uid://dct5qndypr4ug" path="res://Drochetype/LabelSettings/wrong.tres" id="9_2w5on"]
-[ext_resource type="LabelSettings" uid="uid://bxcn5ahoqe2bf" path="res://Drochetype/LabelSettings/timer_waiting.tres" id="9_h1m7h"]
 [ext_resource type="Script" uid="uid://d1s2yg820ksd4" path="res://Drochetype/Scripts/ScreenResult.gd" id="10_346fj"]
 [ext_resource type="FoldableGroup" uid="uid://c3p0xx38m8bg8" path="res://Drochetype/FoldableGroups/screen_main_foldable_group.tres" id="14_1p5hy"]
 [ext_resource type="Theme" uid="uid://bd8omdk4k5nhq" path="res://Drochetype/Themes/alphabet_item_list.tres" id="15_h1m7h"]
 [ext_resource type="Script" uid="uid://0bb3l3vc0ews" path="res://Drochetype/Scripts/FoldableItemList.gd" id="15_me5cq"]
 [ext_resource type="Texture2D" uid="uid://82ddnk57ecob" path="res://Drochetype/Images/UI/circle.png" id="16_erwvk"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_dx6l4"]
+font = ExtResource("5_frkhe")
+font_size = 59
 
 [sub_resource type="LabelSettings" id="LabelSettings_dtese"]
 font = ExtResource("5_frkhe")
@@ -71,9 +72,9 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("6_1p5hy")
 timer = NodePath("Timer")
-timer_setting_waiting = ExtResource("9_h1m7h")
-timer_setting_running = ExtResource("5_erwvk")
-timer_setting_finished = ExtResource("7_erwvk")
+timer_color_waiting = Color(1, 1, 1, 1)
+timer_color_running = Color(0.06666667, 0.47843137, 0.39607844, 1)
+timer_color_finished = Color(0.8862745, 0.7176471, 0.078431375, 1)
 letters_root = NodePath("LettersRoot")
 letter_scene = ExtResource("7_h1m7h")
 cursor_scene = ExtResource("7_frkhe")
@@ -112,7 +113,7 @@ offset_bottom = -258.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "00:00"
-label_settings = ExtResource("9_h1m7h")
+label_settings = SubResource("LabelSettings_dx6l4")
 horizontal_alignment = 1
 
 [node name="ScreenResult" type="Control" parent="." node_paths=PackedStringArray("label_wpm", "label_accuracy_real")]

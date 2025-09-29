@@ -2,9 +2,9 @@ class_name ScreenTyping extends Node
 
 
 @export var timer: Label
-@export var timer_setting_waiting: Resource
-@export var timer_setting_running: Resource
-@export var timer_setting_finished: Resource
+@export var timer_color_waiting: Color
+@export var timer_color_running: Color
+@export var timer_color_finished: Color
 @export var letters_root: Control
 @export var letter_scene: PackedScene
 @export var cursor_scene: PackedScene
@@ -313,11 +313,11 @@ func _timer_set_time(time_msec: int):
 func _timer_set_state(state: TimerState):
     match state:
         TimerState.Waiting:
-            timer.label_settings = timer_setting_waiting
+            timer.label_settings.font_color = timer_color_waiting
         TimerState.Running:
-            timer.label_settings = timer_setting_running
+            timer.label_settings.font_color = timer_color_running
         TimerState.Finished:
-            timer.label_settings = timer_setting_finished
+            timer.label_settings.font_color = timer_color_finished
 
 
 enum TimerState {
