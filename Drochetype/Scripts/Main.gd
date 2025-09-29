@@ -16,6 +16,7 @@ func _ready() -> void:
     screen_result.hide()
 
     screen_main.generate_new_test.connect(_on_restart)
+    screen_typing.started_test.connect(_on_start)
     screen_typing.show_test_result.connect(_on_end)
     screen_typing.generate_new_test.connect(_on_restart)
     screen_typing.reset_current_test.connect(_on_reset)
@@ -25,14 +26,15 @@ func _ready() -> void:
 
     screen_main.set_data(typing_data, typing_config)
     screen_typing.set_data(typing_data, typing_config)
-    _on_start()
 
-
-func _on_start():
     screen_main.show()
     screen_typing.show()
     screen_result.hide()
     screen_typing.start_test()
+
+
+func _on_start():
+    screen_main.unfocus()
 
 
 func _on_restart():

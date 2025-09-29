@@ -16,6 +16,7 @@ class_name ScreenTyping extends Node
 @export var letter_settings_wrong: Resource
 
 
+signal started_test()
 signal show_test_result(result: TypingResult)
 signal generate_new_test()
 signal reset_current_test()
@@ -251,6 +252,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
             start_test_time = current_key_time
             hit_first_letter = true
             _timer_set_state(TimerState.Running)
+            started_test.emit()
 
         var key_char = "%c" % event.unicode
         var goal_char = goal_letters[input_letter_index]

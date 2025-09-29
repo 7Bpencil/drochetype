@@ -21,6 +21,7 @@ The idea was to combine features I found useful from [Typing Practice (keybr.com
 - Space to generate new test after completing last one
 - ESC to reset test, ESC again to generate new test
 - Backspace to fix mistakes
+- Enter to open and close settings group, Tab and Shift-Tab to switch settings group
 
 ## Platforms
 
