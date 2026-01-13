@@ -327,8 +327,15 @@ fn reset_current_test(state: &mut State) {
 }
 
 fn render(frame: &mut Frame, state: &State) {
+    let title_line = Line::from("drochetype");
+    let test_state_line = match state.test_state {
+        TestState::Waiting => Line::from("waiting"),
+        TestState::Running => Line::from("running").fg(Color::Green),
+        TestState::Finished => Line::from("finished").fg(Color::Yellow),
+    };
     let block = Block::default()
-        .title(Line::from("drochetype").centered())
+        .title_top(title_line.centered())
+        .title_bottom(test_state_line)
         .borders(Borders::ALL);
 
     frame.render_widget(block, frame.area());
@@ -340,7 +347,7 @@ fn render(frame: &mut Frame, state: &State) {
     // during running->finished or finished->waiting transitions
 
     let test_data = &state.test_data;
-    let result = if state.test_state == TestState::Finished {
+    let result_line = if state.test_state == TestState::Finished {
         let elapsed_time = state.test_end_time.duration_since(state.test_start_time);
         let elapsed_seconds = elapsed_time.as_secs();
         let time_string = format!("{0:02}:{1:02}", elapsed_seconds / 60, elapsed_seconds % 60);
@@ -363,7 +370,7 @@ fn render(frame: &mut Frame, state: &State) {
     } else {
         Line::from("")
     };
-    let text = generate_text_from_test(test_data, result);
+    let text = generate_text_from_test(test_data, result_line);
 
     let text_area = frame.area().centered(
         Constraint::Length(MAX_LINE_LENGTH as u16),
@@ -377,7 +384,7 @@ fn render(frame: &mut Frame, state: &State) {
     frame.set_cursor_position(cursor_position_local + text_area.as_position().into());
 }
 
-fn generate_text_from_test<'a>(test_data: &TestData, result: Line<'a>) -> Text<'a> {
+fn generate_text_from_test<'a>(test_data: &TestData, result_line: Line<'a>) -> Text<'a> {
     let test_lines = &test_data.lines;
     let mut lines = Vec::with_capacity(test_lines.len() + 1);
 
@@ -399,22 +406,22 @@ fn generate_text_from_test<'a>(test_data: &TestData, result: Line<'a>) -> Text<'
         let line = Line::from(line_spans);
         lines.push(line);
     }
-    lines.push(result);
+    lines.push(result_line);
 
     Text::from(lines)
 }
 
-fn get_char_span<'a>(index: usize, goal_chars: &Vec<char>, input_chars: &Vec<char>) -> Span<'a> {
-    if index >= input_chars.len() {
-        let char = goal_chars[index];
+fn get_char_span<'a>(char_index: usize, goal_chars: &Vec<char>, input_chars: &Vec<char>) -> Span<'a> {
+    if char_index >= input_chars.len() {
+        let char = goal_chars[char_index];
         return Span::from(char.to_string());
     }
-    if input_chars[index] == goal_chars[index] {
-        let char = goal_chars[index];
+    if input_chars[char_index] == goal_chars[char_index] {
+        let char = goal_chars[char_index];
         let style = Style::default().fg(Color::Green);
         return Span::styled(char.to_string(), style);
     } else {
-        let mut char = input_chars[index];
+        let mut char = input_chars[char_index];
         if char == ' ' {
             char = '_';
         }
