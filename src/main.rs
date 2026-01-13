@@ -6,12 +6,13 @@ use serde::{
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
+    time::{Instant, Duration},
 };
 use spdlog::{prelude::*, sink::FileSink};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
     buffer::Buffer,
-    layout::{Rect, Constraint, Position},
+    layout::{Rect, Constraint, Position, Size, Offset},
     style::{Stylize, Color, Style},
     symbols::border,
     text::{Span, Line, Text},
@@ -19,7 +20,7 @@ use ratatui::{
     DefaultTerminal, Frame,
 };
 
-const MAX_LINES: usize = 2;
+const MAX_LINES: usize = 6;
 const MAX_LINE_LENGTH: usize = 45;
 const MAX_TOTAL_LENGTH: usize = MAX_LINES * MAX_LINE_LENGTH;
 
@@ -90,6 +91,10 @@ struct State {
     typing_data: TypingData,
     test_data: TestData,
     test_state: TestState,
+    test_start_time: Instant,
+    test_end_time: Instant,
+    total_keys_pressed: usize,
+    wrong_keys_pressed: usize,
     exit: bool,
 }
 
@@ -112,10 +117,15 @@ fn main() {
 
     let typing_data = load_typing_data();
     let test_data = generate_test_data(&typing_data);
+    let time = Instant::now();
     let state = State {
         typing_data,
         test_data,
         test_state: TestState::Waiting,
+        test_start_time: time,
+        test_end_time: time,
+        total_keys_pressed: 0,
+        wrong_keys_pressed: 0,
         exit: false,
     };
 
@@ -245,8 +255,6 @@ fn update(state: &mut State) -> Result<()> {
 }
 
 fn key_input(key_event: KeyEvent, state: &mut State) {
-    let test_data = &mut state.test_data;
-
     if key_event.modifiers.contains(KeyModifiers::CONTROL) && key_event.code.is_char('c') {
         state.exit = true;
         return;
@@ -256,7 +264,8 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
         TestState::Waiting => match key_event.code {
             KeyCode::Esc => start_new_test(state),
             KeyCode::Char(key_char) => {
-                test_data.input_chars.push(key_char);
+                push_new_char(state, key_char);
+                state.test_start_time = Instant::now();
                 state.test_state = TestState::Running;
             }
             _ => {}
@@ -264,15 +273,18 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
         TestState::Running => match key_event.code {
             KeyCode::Esc => reset_current_test(state),
             KeyCode::Backspace => {
-                if test_data.input_chars.len() > 1 {
-                    test_data.input_chars.pop();
+                if state.test_data.input_chars.len() > 1 {
+                    state.test_data.input_chars.pop();
+                    // should we count backspaces in wpm/cpm? debatable
+                    state.total_keys_pressed += 1;
                 } else {
                     reset_current_test(state);
                 }
             },
             KeyCode::Char(key_char) => {
-                test_data.input_chars.push(key_char);
-                if test_data.input_chars.len() >= test_data.goal_chars.len() - 1 {
+                push_new_char(state, key_char);
+                if state.test_data.input_chars.len() >= state.test_data.goal_chars.len() - 1 {
+                    state.test_end_time = Instant::now();
                     state.test_state = TestState::Finished;
                 }
             },
@@ -286,41 +298,88 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
     }
 }
 
+fn push_new_char(state: &mut State, new_char: char) {
+    let test_data = &mut state.test_data;
+
+    test_data.input_chars.push(new_char);
+    state.total_keys_pressed += 1;
+
+    let new_char_index = test_data.input_chars.len() - 1;
+    let goal_char = test_data.goal_chars[new_char_index];
+    let is_correct = new_char == goal_char;
+    if new_char != goal_char {
+        state.wrong_keys_pressed += 1;
+    }
+}
+
 fn start_new_test(state: &mut State) {
     state.test_data = generate_test_data(&state.typing_data);
     state.test_state = TestState::Waiting;
+    state.total_keys_pressed = 0;
+    state.wrong_keys_pressed = 0;
 }
 
 fn reset_current_test(state: &mut State) {
     state.test_data.input_chars.clear();
     state.test_state = TestState::Waiting;
+    state.total_keys_pressed = 0;
+    state.wrong_keys_pressed = 0;
 }
 
 fn render(frame: &mut Frame, state: &State) {
-    let test_data = &state.test_data;
-    let text = generate_text_from_test(test_data);
-    let cursor_position_index = test_data.input_chars.len();
-    let cursor_position_local = test_data.char_positions[cursor_position_index];
+    let block = Block::default()
+        .title(Line::from("drochetype").centered())
+        .borders(Borders::ALL);
 
-    let buffer = frame.buffer_mut();
+    frame.render_widget(block, frame.area());
+
+    // result line with accuracy/wpm/cpm/time appears only on finished state,
+    // result line is placed below text,
+    // space for result line is reserved even when test is not finished,
+    // otherwise main text could jump one line up or down
+    // during running->finished or finished->waiting transitions
+
+    let test_data = &state.test_data;
+    let result = if state.test_state == TestState::Finished {
+        let elapsed_time = state.test_end_time.duration_since(state.test_start_time);
+        let elapsed_seconds = elapsed_time.as_secs();
+        let time_string = format!("{0:02}:{1:02}", elapsed_seconds / 60, elapsed_seconds % 60);
+        let accuracy = (state.total_keys_pressed - state.wrong_keys_pressed) as f64 / state.total_keys_pressed as f64 * 100.0;
+        let accuracy_string = format!("{}%", accuracy.floor());
+        let cpm = 60.0 * state.total_keys_pressed as f64 / elapsed_time.as_secs_f64();
+        let cpm_string = cpm.floor().to_string();
+        let wpm = cpm / 5.0;
+        let wpm_string = wpm.floor().to_string();
+        Line::from(vec![
+            Span::from("acc: "),
+            Span::from(accuracy_string).fg(Color::Yellow),
+            Span::from(" wpm: "),
+            Span::from(wpm_string).fg(Color::Yellow),
+            Span::from(" cpm: "),
+            Span::from(cpm_string).fg(Color::Yellow),
+            Span::from(" time: "),
+            Span::from(time_string).fg(Color::Yellow),
+        ])
+    } else {
+        Line::from("")
+    };
+    let text = generate_text_from_test(test_data, result);
 
     let text_area = frame.area().centered(
         Constraint::Length(MAX_LINE_LENGTH as u16),
         Constraint::Length(text.height() as u16)
     );
 
-    let block = Block::default()
-        .title(Line::from("drochetype").centered())
-        .borders(Borders::ALL);
-
-    frame.render_widget(block, frame.area());
     frame.render_widget(text, text_area);
+
+    let cursor_position_index = test_data.input_chars.len();
+    let cursor_position_local = test_data.char_positions[cursor_position_index];
     frame.set_cursor_position(cursor_position_local + text_area.as_position().into());
 }
 
-fn generate_text_from_test<'a>(test_data: &TestData) -> Text<'a> {
+fn generate_text_from_test<'a>(test_data: &TestData, result: Line<'a>) -> Text<'a> {
     let test_lines = &test_data.lines;
-    let mut lines = Vec::with_capacity(test_lines.len());
+    let mut lines = Vec::with_capacity(test_lines.len() + 1);
 
     let mut span_index = 0;
     for test_line in test_lines {
@@ -340,6 +399,7 @@ fn generate_text_from_test<'a>(test_data: &TestData) -> Text<'a> {
         let line = Line::from(line_spans);
         lines.push(line);
     }
+    lines.push(result);
 
     Text::from(lines)
 }
