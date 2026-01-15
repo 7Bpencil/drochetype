@@ -1,3 +1,4 @@
+// TODO rework everything with strum
 use anyhow::Result;
 use serde::{
     Deserialize, Serialize,
@@ -21,38 +22,55 @@ use ratatui::{
     DefaultTerminal, Frame,
 };
 
-const MAX_LINES: usize = 3;
-const MAX_LINE_LENGTH: usize = 45;
-const MAX_TOTAL_LENGTH: usize = MAX_LINES * MAX_LINE_LENGTH;
+macro_rules! strings {
+    ($($x:expr),*) => (vec![$($x.to_string()),*]);
+}
 
+// TODO add different widths: narrow, medium, wide
+const MAX_LINE_LENGTH: usize = 45;
+
+struct TestSettings {
+    language: TestLanguage,
+    ngram: NgramType,
+    word_rarity_index: usize,
+    natural_language_configs: HashMap<usize, TypingConfigNaturalLanguage>,
+    size_index: usize,
+}
+
+fn build_settings_tabs(test_settings: &TestSettings, active_tab: &SettingsTab) -> (Vec<SettingsTab>, usize) {
+    let tabs = match test_settings.language {
+        TestLanguage::Numbers => vec![SettingsTab::Language, SettingsTab::Size],
+        TestLanguage::Symbols => vec![SettingsTab::Language, SettingsTab::Size],
+        TestLanguage::Natural(_) => match test_settings.ngram {
+            NgramType::Letters => vec![SettingsTab::Language, SettingsTab::NgramType, SettingsTab::SelectLetters, SettingsTab::Size],
+            NgramType::Bigrams => vec![SettingsTab::Language, SettingsTab::NgramType, SettingsTab::Size],
+            NgramType::Trigrams => vec![SettingsTab::Language, SettingsTab::NgramType, SettingsTab::Size],
+            NgramType::Words => vec![SettingsTab::Language, SettingsTab::NgramType, SettingsTab::WordsRarity, SettingsTab::IncludeLetter, SettingsTab::Size],
+        },
+    };
+
+    let active_tab_index = tabs.iter().position(|tab| tab == active_tab).expect("active tab was not in the tab list?");
+    (tabs, active_tab_index)
+}
+
+// TODO maybe add artificial word length for Numbers and Symbols?
 enum TestLanguage {
     Numbers,
     Symbols,
-    Natural // there can be multiple natural languages, we assume that all of them are placed after symbols language
+    Natural(usize)
 }
 
-enum TestType {
+enum NgramType {
     Letters,
     Bigrams,
     Trigrams,
     Words,
 }
 
-#[derive(Hash)]
-#[derive(Eq)]
-#[derive(PartialEq)]
-enum WordsRarity {
-    VeryCommon,
-    Common,
-    Rare,
-    VeryRare,
-}
-
-enum TestSize {
-    VerySmall,
-    Small,
-    Medium,
-    Large,
+struct TypingConfigNaturalLanguage {
+    words_include_letter: usize,
+    learn_letters: HashSet<usize>,
+    learn_letters_priority: usize,
 }
 
 #[derive(Deserialize, Debug)]
@@ -76,6 +94,7 @@ struct TypingData {
     numbers: Vec<String>,
     symbols: Vec<String>,
     natural_languages_data: Vec<TypingDataNaturalLanguage>,
+    test_sizes: Vec<usize>,
 }
 
 struct TypingDataNaturalLanguage {
@@ -84,12 +103,22 @@ struct TypingDataNaturalLanguage {
     alphabet_dict: HashMap<char, usize>,
     bigrams: Vec<String>,
     trigrams: Vec<String>,
-    words: HashMap<WordsRarity, Vec<String>>,
-    words_per_letter: HashMap<WordsRarity, HashMap<char, Vec<usize>>>,
+    words: Vec<NaturalLanguageWords>,
+}
+
+struct NaturalLanguageWords {
+    all_words: Vec<String>,
+    per_letter: HashMap<char, Vec<usize>>,
+}
+
+struct Localization {
+    word_rarities: Vec<String>,
+    test_sizes: Vec<String>
 }
 
 struct State {
     typing_data: TypingData,
+    localization: Localization,
     test_data: TestData,
     test_state: TestState,
     test_start_time: Instant,
@@ -97,8 +126,8 @@ struct State {
     total_keys_pressed: usize,
     wrong_keys_pressed: usize,
     show_settings: bool,
-    settings_tabs: Vec<SettingsTab>,
-    active_settings_tab_index: usize,
+    test_settings: TestSettings,
+    active_settings_tab: SettingsTab,
     exit: bool,
 }
 
@@ -116,9 +145,12 @@ struct TestData {
     char_positions: Vec<Position>,
 }
 
+#[derive(PartialEq)]
+#[derive(Copy)]
+#[derive(Clone)]
 enum SettingsTab {
     Language,
-    Type,
+    NgramType,
     WordsRarity,
     IncludeLetter,
     SelectLetters,
@@ -129,10 +161,13 @@ fn main() {
     setup_logging();
 
     let typing_data = load_typing_data();
-    let test_data = generate_test_data(&typing_data);
+    let localization = load_localization();
+    let test_settings = get_default_test_settings(&typing_data);
+    let test_data = generate_test_data(&typing_data, &test_settings);
     let time = Instant::now();
     let state = State {
         typing_data,
+        localization,
         test_data,
         test_state: TestState::Waiting,
         test_start_time: time,
@@ -140,12 +175,23 @@ fn main() {
         total_keys_pressed: 0,
         wrong_keys_pressed: 0,
         show_settings: false,
-        settings_tabs: vec![SettingsTab::Language, SettingsTab::Type, SettingsTab::WordsRarity, SettingsTab::IncludeLetter, SettingsTab::Size],
-        active_settings_tab_index: 0,
+        test_settings: test_settings,
+        active_settings_tab: SettingsTab::Language,
         exit: false,
     };
 
     ratatui::run(|terminal| app(terminal, state));
+}
+
+fn get_default_test_settings(typing_data: &TypingData) -> TestSettings {
+    let natural_languages_count = typing_data.natural_languages_data.len();
+    TestSettings {
+        language: TestLanguage::Natural(0),
+        ngram: NgramType::Words,
+        word_rarity_index: 1,
+        natural_language_configs: HashMap::with_capacity(natural_languages_count),
+        size_index: 1,
+    }
 }
 
 fn setup_logging() -> Result<()> {
@@ -167,8 +213,8 @@ fn app(terminal: &mut DefaultTerminal, mut state: State) -> Result<()> {
     Ok(())
 }
 
-fn generate_test_data(typing_data: &TypingData) -> TestData {
-    let (lines, total_length) = generate_test_lines(&typing_data);
+fn generate_test_data(typing_data: &TypingData, test_settings: &TestSettings) -> TestData {
+    let (lines, total_length) = generate_test_lines(&typing_data, &test_settings);
     let goal_chars = generate_goal_chars(&lines, total_length);
     let input_chars = generate_input_chars(&lines, total_length);
     let char_positions = generate_char_positions(&lines, total_length);
@@ -180,36 +226,36 @@ fn generate_test_data(typing_data: &TypingData) -> TestData {
     }
 }
 
-fn generate_test_lines(typing_data: &TypingData) -> (Vec<Vec<String>>, usize) {
+fn generate_test_lines(typing_data: &TypingData, test_settings: &TestSettings) -> (Vec<Vec<String>>, usize) {
     let mut line_index = 0;
     let mut line_length = 0;
     let mut total_length = 0;
 
-    let mut result_lines = Vec::with_capacity(MAX_LINES);
+    let lines_count = typing_data.test_sizes[test_settings.size_index];
+    let max_line_length = MAX_LINE_LENGTH;
+    let mut result_lines = Vec::with_capacity(lines_count);
     let mut current_line = Vec::new();
 
     loop {
-        let next_word = generate_next_word(typing_data);
+        let next_word = generate_next_word(typing_data, test_settings);
         let next_word_length = next_word.chars().count() + 1; // put space after every word
-
-        // TODO is this condition really necessary?
-        if total_length + next_word_length > MAX_TOTAL_LENGTH {
+        if next_word_length > max_line_length {
+            // really long words can screw up algorithm
             break;
         }
-        if line_length + next_word_length > MAX_LINE_LENGTH {
-            if line_index + 1 < MAX_LINES {
-                result_lines.push(current_line);
-                current_line = Vec::new();
-
-                line_length = next_word_length;
-                line_index += 1;
-            } else {
+        if line_length + next_word_length > max_line_length {
+            if line_index >= lines_count - 1 {
                 break;
             }
-        } else {
-            line_length += next_word_length;
+
+            result_lines.push(current_line);
+            current_line = Vec::new();
+
+            line_length = 0;
+            line_index += 1;
         }
 
+        line_length += next_word_length;
         total_length += next_word_length;
         current_line.push(next_word);
     }
@@ -219,8 +265,8 @@ fn generate_test_lines(typing_data: &TypingData) -> (Vec<Vec<String>>, usize) {
     (result_lines, total_length)
 }
 
-fn generate_next_word(typing_data: &TypingData) -> String {
-    let words = &typing_data.natural_languages_data[0].words[&WordsRarity::Common];
+fn generate_next_word(typing_data: &TypingData, test_settings: &TestSettings) -> String {
+    let words = &typing_data.natural_languages_data[0].words[test_settings.word_rarity_index].all_words;
     let index = rand::random_range(0..words.len());
     words[index].clone()
 }
@@ -290,14 +336,50 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
             return;
         },
         KeyCode::Tab => {
+            let (settings_tabs, active_settings_tab_index) = build_settings_tabs(&state.test_settings, &state.active_settings_tab);
+            let new_active_settings_tab_index = (active_settings_tab_index + 1) % settings_tabs.len();
+            state.active_settings_tab = settings_tabs[new_active_settings_tab_index];
             state.show_settings = true;
-            state.active_settings_tab_index = (state.active_settings_tab_index + 1) % state.settings_tabs.len();
             return;
         },
         KeyCode::BackTab => {
+            let (settings_tabs, active_settings_tab_index) = build_settings_tabs(&state.test_settings, &state.active_settings_tab);
+            let new_active_settings_tab_index = (settings_tabs.len() + active_settings_tab_index - 1) % settings_tabs.len();
+            state.active_settings_tab = settings_tabs[new_active_settings_tab_index];
             state.show_settings = true;
-            state.active_settings_tab_index = (state.settings_tabs.len() + state.active_settings_tab_index - 1) % state.settings_tabs.len();
             return;
+        },
+        KeyCode::Down => {
+            if state.show_settings {
+                if state.active_settings_tab == SettingsTab::WordsRarity {
+            // let word_rarity_names = &state.localization.word_rarities;
+            // let mut lines = Vec::with_capacity(word_rarity_names.len());
+            // for (i, word_rarity_name) in word_rarity_names.iter().enumerate() {
+            //     if i == state.test_settings.word_rarity_index {
+            //         lines.push(Line::styled(word_rarity_name, Style::default().fg(Color::Yellow)).centered());
+            //     } else {
+            //         lines.push(Line::styled(word_rarity_name, Style::default()).centered());
+            //     }
+            // }
+
+                }
+                if state.active_settings_tab == SettingsTab::Size {
+                    let sizes_count = state.typing_data.test_sizes.len();
+                    state.test_settings.size_index = (state.test_settings.size_index + 1) % sizes_count;
+                    start_new_test(state);
+                    return;
+                }
+            }
+        },
+        KeyCode::Up => {
+            if state.show_settings {
+                if state.active_settings_tab == SettingsTab::Size {
+                    let sizes_count = state.typing_data.test_sizes.len();
+                    state.test_settings.size_index = (sizes_count + state.test_settings.size_index - 1) % sizes_count;
+                    start_new_test(state);
+                    return;
+                }
+            }
         },
         _ => {}
     }
@@ -359,7 +441,7 @@ fn push_new_char(state: &mut State, new_char: char) {
 }
 
 fn start_new_test(state: &mut State) {
-    state.test_data = generate_test_data(&state.typing_data);
+    state.test_data = generate_test_data(&state.typing_data, &state.test_settings);
     state.test_state = TestState::Waiting;
     state.total_keys_pressed = 0;
     state.wrong_keys_pressed = 0;
@@ -390,12 +472,15 @@ fn render(frame: &mut Frame, state: &State) {
     frame.render_widget(block, frame_area);
 
     // draw main text
+    // TODO if stuff does not fit with max_text_height, then use text_height
     let text = generate_text_from_test(&state.test_data);
+    let text_height = text.height();
+    let max_text_height = state.typing_data.test_sizes.iter().max().expect("no items in test_sizes array?").clone();
     let text_area = Rect::new(
         get_center(frame_area.width, MAX_LINE_LENGTH as u16),
-        get_center(frame_area.height, text.height() as u16),
+        get_center(frame_area.height, max_text_height as u16),
         MAX_LINE_LENGTH as u16,
-        text.height() as u16
+        max_text_height as u16
     );
     frame.render_widget(text, text_area);
 
@@ -408,21 +493,22 @@ fn render(frame: &mut Frame, state: &State) {
 
     // draw settings tabs
     let separator = " • ";
+    let (settings_tabs, active_settings_tab_index) = build_settings_tabs(&state.test_settings, &state.active_settings_tab);
     let active_settings_tab_style = Style::default().add_modifier(Modifier::UNDERLINED);
-    let mut tab_names = Vec::with_capacity(state.settings_tabs.len() * 2 - 1);
-    for (i, settings_tab) in state.settings_tabs.iter().enumerate() {
+    let mut tab_names = Vec::with_capacity(settings_tabs.len() * 2 - 1); // reserve space for tab names and separators
+    for (i, settings_tab) in settings_tabs.iter().enumerate() {
         let settings_tab_name = get_settings_tab_name(settings_tab);
-        if i == state.active_settings_tab_index {
+        if i == active_settings_tab_index {
             tab_names.push(Span::styled(settings_tab_name, active_settings_tab_style));
         } else {
             tab_names.push(Span::from(settings_tab_name));
         }
-        if i < state.settings_tabs.len() - 1 {
+        if i < settings_tabs.len() - 1 {
             tab_names.push(Span::from(separator));
         }
     }
 
-    let active_tab_name_x_local = get_tab_name_x(state.active_settings_tab_index, &tab_names);
+    let active_tab_name_x_local = get_tab_name_x(active_settings_tab_index, &tab_names);
     let tabs = Line::from(tab_names);
     let tabs_width = tabs.width() as u16;
     let tabs_area = Rect::new(get_center(frame_area.width, tabs_width), text_area.y - 2, tabs_width, 1);
@@ -450,15 +536,14 @@ fn render(frame: &mut Frame, state: &State) {
             Span::from(" time: "),
             Span::from(time_string).fg(Color::Yellow),
         ]);
-        let result_line_area = Rect::new(text_area.x, text_area.bottom() + 1, frame_area.width, 1);
+        let result_line_area = Rect::new(text_area.x, text_area.y + text_height as u16 + 1, frame_area.width, 1);
         frame.render_widget(result_line, result_line_area);
     };
 
     // draw settings options
     if state.show_settings {
-        let current_setting_tab = &state.settings_tabs[state.active_settings_tab_index];
-        let text = get_settings_options(current_setting_tab);
-        let title_name = get_settings_tab_name(current_setting_tab);
+        let text = get_settings_options(&state);
+        let title_name = get_settings_tab_name(&state.active_settings_tab);
         let title = Line::styled(title_name, active_settings_tab_style);
         let text_area_width = title.width() + 4;
         let text_area_height = text.height() + 2;
@@ -487,7 +572,7 @@ fn get_tab_name_x(tab_index: usize, tab_names: &Vec<Span>) -> u16 {
 fn get_settings_tab_name(tab: &SettingsTab) -> String {
     let name = match tab {
         SettingsTab::Language => "language",
-        SettingsTab::Type => "test type",
+        SettingsTab::NgramType => "ngram type",
         SettingsTab::WordsRarity => "words rarity",
         SettingsTab::IncludeLetter => "include letter",
         SettingsTab::SelectLetters => "select letters",
@@ -496,8 +581,8 @@ fn get_settings_tab_name(tab: &SettingsTab) -> String {
     name.to_string()
 }
 
-fn get_settings_options(settings_tab: &SettingsTab) -> Text {
-    match settings_tab {
+fn get_settings_options(state: &State) -> Text {
+    match state.active_settings_tab {
         SettingsTab::Language => {
             Text::from(vec![
                 Line::from("numbers").centered(),
@@ -506,7 +591,7 @@ fn get_settings_options(settings_tab: &SettingsTab) -> Text {
                 Line::from("russian").centered(),
             ])
         },
-        SettingsTab::Type => {
+        SettingsTab::NgramType => {
             Text::from(vec![
                 Line::from("letters").centered(),
                 Line::from("bigrams").centered(),
@@ -515,12 +600,22 @@ fn get_settings_options(settings_tab: &SettingsTab) -> Text {
             ])
         },
         SettingsTab::WordsRarity => {
-            Text::from(vec![
-                Line::from("very common").centered(),
-                Line::from("common").centered().style(Style::default().fg(Color::Yellow)),
-                Line::from("rare").centered(),
-                Line::from("very rare").centered(),
-            ])
+            let word_rarity_names = &state.localization.word_rarities;
+            let mut lines = Vec::with_capacity(word_rarity_names.len());
+            for (i, word_rarity_name) in word_rarity_names.iter().enumerate() {
+                if i == state.test_settings.word_rarity_index {
+                    lines.push(Line::styled(word_rarity_name, Style::default().fg(Color::Yellow)).centered());
+                } else {
+                    lines.push(Line::styled(word_rarity_name, Style::default()).centered());
+                }
+            }
+            Text::from(lines)
+            // Text::from(vec![
+            //     Line::from("very common").centered(),
+            //     Line::from("common").centered().style(Style::default().fg(Color::Yellow)),
+            //     Line::from("rare").centered(),
+            //     Line::from("very rare").centered(),
+            // ])
         },
         SettingsTab::IncludeLetter => {
             Text::from(vec![
@@ -532,19 +627,23 @@ fn get_settings_options(settings_tab: &SettingsTab) -> Text {
         },
         SettingsTab::SelectLetters => {
             Text::from(vec![
-                Line::from("letters").centered(),
-                Line::from("bigrams").centered(),
-                Line::from("trigrams").centered(),
-                Line::from("words").centered(),
+                Line::from("test").centered(),
+                Line::from("test").centered(),
+                Line::from("test").centered(),
+                Line::from("test").centered(),
             ])
         },
         SettingsTab::Size => {
-            Text::from(vec![
-                Line::from("very small").centered(),
-                Line::from("small").centered().style(Style::default().fg(Color::Yellow)),
-                Line::from("medium").centered(),
-                Line::from("large").centered(),
-            ])
+            let test_size_names = &state.localization.test_sizes;
+            let mut lines = Vec::with_capacity(test_size_names.len());
+            for (i, test_size_name) in test_size_names.iter().enumerate() {
+                if i == state.test_settings.size_index {
+                    lines.push(Line::styled(test_size_name, Style::default().fg(Color::Yellow)).centered());
+                } else {
+                    lines.push(Line::styled(test_size_name, Style::default()).centered());
+                }
+            }
+            Text::from(lines)
         },
     }
 }
@@ -618,19 +717,24 @@ fn load_typing_data() -> TypingData {
         remove_one_letter_words(&mut words_rare);
         remove_one_letter_words(&mut words_very_rare);
 
-        let words_per_letter = HashMap::from([
-            (WordsRarity::VeryCommon, build_letter_to_words_dict(&words_very_common, &alphabet)),
-            (WordsRarity::Common, build_letter_to_words_dict(&words_common, &alphabet)),
-            (WordsRarity::Rare, build_letter_to_words_dict(&words_rare, &alphabet)),
-            (WordsRarity::VeryRare, build_letter_to_words_dict(&words_very_rare, &alphabet)),
-        ]);
-
-        let words = HashMap::from([
-            (WordsRarity::VeryCommon, words_very_common),
-            (WordsRarity::Common, words_common),
-            (WordsRarity::Rare, words_rare),
-            (WordsRarity::VeryRare, words_very_rare),
-        ]);
+        let words = vec![
+            NaturalLanguageWords {
+                per_letter: build_letter_to_words_dict(&words_very_common, &alphabet),
+                all_words: words_very_common,
+            },
+            NaturalLanguageWords {
+                per_letter: build_letter_to_words_dict(&words_common, &alphabet),
+                all_words: words_common,
+            },
+            NaturalLanguageWords {
+                per_letter: build_letter_to_words_dict(&words_rare, &alphabet),
+                all_words: words_rare,
+            },
+            NaturalLanguageWords {
+                per_letter: build_letter_to_words_dict(&words_very_rare, &alphabet),
+                all_words: words_very_rare,
+            },
+        ];
 
         natural_languages_data.push(TypingDataNaturalLanguage {
             name,
@@ -639,7 +743,6 @@ fn load_typing_data() -> TypingData {
             bigrams,
             trigrams,
             words,
-            words_per_letter,
         });
     }
 
@@ -647,6 +750,14 @@ fn load_typing_data() -> TypingData {
         numbers,
         symbols,
         natural_languages_data,
+        test_sizes: vec![1, 3, 6, 12],
+    }
+}
+
+fn load_localization() -> Localization {
+    Localization {
+        word_rarities: strings!["very common", "common", "rare", "very rare"],
+        test_sizes: strings!["very small", "small", "medium", "large"],
     }
 }
 
