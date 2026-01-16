@@ -351,16 +351,9 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
         KeyCode::Down => {
             if state.show_settings {
                 if state.active_settings_tab == SettingsTab::WordsRarity {
-            // let word_rarity_names = &state.localization.word_rarities;
-            // let mut lines = Vec::with_capacity(word_rarity_names.len());
-            // for (i, word_rarity_name) in word_rarity_names.iter().enumerate() {
-            //     if i == state.test_settings.word_rarity_index {
-            //         lines.push(Line::styled(word_rarity_name, Style::default().fg(Color::Yellow)).centered());
-            //     } else {
-            //         lines.push(Line::styled(word_rarity_name, Style::default()).centered());
-            //     }
-            // }
-
+                    state.test_settings.word_rarity_index = (state.test_settings.word_rarity_index + 1) % WORD_RARITIES_COUNT;
+                    start_new_test(state);
+                    return;
                 }
                 if state.active_settings_tab == SettingsTab::Size {
                     state.test_settings.size_index = (state.test_settings.size_index + 1) % TEST_SIZES_COUNT;
@@ -371,6 +364,11 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
         },
         KeyCode::Up => {
             if state.show_settings {
+                if state.active_settings_tab == SettingsTab::WordsRarity {
+                    state.test_settings.word_rarity_index = (WORD_RARITIES_COUNT + state.test_settings.word_rarity_index - 1) % WORD_RARITIES_COUNT;
+                    start_new_test(state);
+                    return;
+                }
                 if state.active_settings_tab == SettingsTab::Size {
                     state.test_settings.size_index = (TEST_SIZES_COUNT + state.test_settings.size_index - 1) % TEST_SIZES_COUNT;
                     start_new_test(state);
@@ -597,22 +595,7 @@ fn get_settings_options(state: &State) -> Text {
             ])
         },
         SettingsTab::WordsRarity => {
-            let word_rarity_names = &state.localization.word_rarities;
-            let mut lines = Vec::with_capacity(word_rarity_names.len());
-            for (i, word_rarity_name) in word_rarity_names.iter().enumerate() {
-                if i == state.test_settings.word_rarity_index {
-                    lines.push(Line::styled(word_rarity_name, Style::default().fg(Color::Yellow)).centered());
-                } else {
-                    lines.push(Line::styled(word_rarity_name, Style::default()).centered());
-                }
-            }
-            Text::from(lines)
-            // Text::from(vec![
-            //     Line::from("very common").centered(),
-            //     Line::from("common").centered().style(Style::default().fg(Color::Yellow)),
-            //     Line::from("rare").centered(),
-            //     Line::from("very rare").centered(),
-            // ])
+            get_settings_options_from_names(&state.localization.word_rarities, state.test_settings.word_rarity_index)
         },
         SettingsTab::IncludeLetter => {
             Text::from(vec![
@@ -631,18 +614,21 @@ fn get_settings_options(state: &State) -> Text {
             ])
         },
         SettingsTab::Size => {
-            let test_size_names = &state.localization.test_sizes;
-            let mut lines = Vec::with_capacity(test_size_names.len());
-            for (i, test_size_name) in test_size_names.iter().enumerate() {
-                if i == state.test_settings.size_index {
-                    lines.push(Line::styled(test_size_name, Style::default().fg(Color::Yellow)).centered());
-                } else {
-                    lines.push(Line::styled(test_size_name, Style::default()).centered());
-                }
-            }
-            Text::from(lines)
+            get_settings_options_from_names(&state.localization.test_sizes, state.test_settings.size_index)
         },
     }
+}
+
+fn get_settings_options_from_names(names: &[String], active_option_index: usize) -> Text {
+    let mut lines = Vec::with_capacity(names.len());
+    for (i, name) in names.iter().enumerate() {
+        if i == active_option_index {
+            lines.push(Line::styled(name, Style::default().fg(Color::Yellow)).centered());
+        } else {
+            lines.push(Line::styled(name, Style::default()).centered());
+        }
+    }
+    Text::from(lines)
 }
 
 fn generate_text_from_test<'a>(test_data: &TestData) -> Text<'a> {
