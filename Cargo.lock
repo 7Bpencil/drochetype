@@ -349,11 +349,21 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "crossterm",
+ "drochetype_macros",
  "rand 0.9.2",
  "ratatui",
  "serde",
  "serde_json",
  "spdlog-rs",
+ "strum",
+]
+
+[[package]]
+name = "drochetype_macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn 2.0.114",
 ]
 
 [[package]]
