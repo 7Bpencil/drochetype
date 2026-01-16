@@ -1,4 +1,3 @@
-// TODO rework everything with strum
 use anyhow::Result;
 use serde::{
     Deserialize, Serialize,
@@ -23,11 +22,12 @@ use ratatui::{
 };
 
 macro_rules! strings {
-    ($($x:expr),*) => (vec![$($x.to_string()),*]);
+    ($($x:expr),*) => ([$($x.to_string()),*]);
 }
 
-// TODO add different widths: narrow, medium, wide
-const MAX_LINE_LENGTH: usize = 45;
+const MAX_LINE_LENGTH: usize = 45; // TODO add different widths: narrow, medium, wide
+const WORD_RARITIES_COUNT: usize = 4;
+const TEST_SIZES_COUNT: usize = 4;
 
 struct TestSettings {
     language: TestLanguage,
@@ -53,7 +53,6 @@ fn build_settings_tabs(test_settings: &TestSettings, active_tab: &SettingsTab) -
     (tabs, active_tab_index)
 }
 
-// TODO maybe add artificial word length for Numbers and Symbols?
 enum TestLanguage {
     Numbers,
     Symbols,
@@ -94,7 +93,7 @@ struct TypingData {
     numbers: Vec<String>,
     symbols: Vec<String>,
     natural_languages_data: Vec<TypingDataNaturalLanguage>,
-    test_sizes: Vec<usize>,
+    test_sizes: [usize; TEST_SIZES_COUNT],
 }
 
 struct TypingDataNaturalLanguage {
@@ -103,7 +102,7 @@ struct TypingDataNaturalLanguage {
     alphabet_dict: HashMap<char, usize>,
     bigrams: Vec<String>,
     trigrams: Vec<String>,
-    words: Vec<NaturalLanguageWords>,
+    words: [NaturalLanguageWords; WORD_RARITIES_COUNT],
 }
 
 struct NaturalLanguageWords {
@@ -112,8 +111,8 @@ struct NaturalLanguageWords {
 }
 
 struct Localization {
-    word_rarities: Vec<String>,
-    test_sizes: Vec<String>
+    word_rarities: [String; WORD_RARITIES_COUNT],
+    test_sizes: [String; TEST_SIZES_COUNT]
 }
 
 struct State {
@@ -364,8 +363,7 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
 
                 }
                 if state.active_settings_tab == SettingsTab::Size {
-                    let sizes_count = state.typing_data.test_sizes.len();
-                    state.test_settings.size_index = (state.test_settings.size_index + 1) % sizes_count;
+                    state.test_settings.size_index = (state.test_settings.size_index + 1) % TEST_SIZES_COUNT;
                     start_new_test(state);
                     return;
                 }
@@ -374,8 +372,7 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
         KeyCode::Up => {
             if state.show_settings {
                 if state.active_settings_tab == SettingsTab::Size {
-                    let sizes_count = state.typing_data.test_sizes.len();
-                    state.test_settings.size_index = (sizes_count + state.test_settings.size_index - 1) % sizes_count;
+                    state.test_settings.size_index = (TEST_SIZES_COUNT + state.test_settings.size_index - 1) % TEST_SIZES_COUNT;
                     start_new_test(state);
                     return;
                 }
@@ -717,7 +714,7 @@ fn load_typing_data() -> TypingData {
         remove_one_letter_words(&mut words_rare);
         remove_one_letter_words(&mut words_very_rare);
 
-        let words = vec![
+        let words = [
             NaturalLanguageWords {
                 per_letter: build_letter_to_words_dict(&words_very_common, &alphabet),
                 all_words: words_very_common,
@@ -750,7 +747,7 @@ fn load_typing_data() -> TypingData {
         numbers,
         symbols,
         natural_languages_data,
-        test_sizes: vec![1, 3, 6, 12],
+        test_sizes: [1, 3, 6, 12],
     }
 }
 
