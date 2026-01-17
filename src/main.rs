@@ -1,4 +1,3 @@
-use drochetype_macros::*;
 use anyhow::Result;
 use serde::{
     Deserialize, Serialize,
@@ -11,7 +10,6 @@ use std::{
 };
 use spdlog::{prelude::*, sink::FileSink};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use strum::{EnumCount, FromRepr};
 use rand::prelude::SliceRandom;
 use ratatui::{
     buffer::Buffer,
@@ -24,13 +22,10 @@ use ratatui::{
     DefaultTerminal, Frame,
 };
 
-macro_rules! strings {
-    ($($x:expr),*) => ([$($x.to_string()),*]);
-}
-
 const MAX_LINE_LENGTH: usize = 45; // TODO add different widths: narrow, medium, wide
 
 struct TestSettings {
+    active_settings_tab: SettingsTab,
     language: TestLanguage,
     ngram: NgramType,
     words_rarity: WordsRarity,
@@ -38,29 +33,90 @@ struct TestSettings {
     size: TestSize,
 }
 
-fn build_settings_tabs(test_settings: &TestSettings, active_tab: &SettingsTab) -> (Vec<SettingsTab>, usize) {
-    let tabs = match test_settings.language {
-        TestLanguage::Numbers => vec![SettingsTab::Language, SettingsTab::Size],
-        TestLanguage::Symbols => vec![SettingsTab::Language, SettingsTab::Size],
-        TestLanguage::Natural(_) => match test_settings.ngram {
-            NgramType::Letters => vec![SettingsTab::Language, SettingsTab::NgramType, SettingsTab::SelectLetters, SettingsTab::Size],
-            NgramType::Bigrams => vec![SettingsTab::Language, SettingsTab::NgramType, SettingsTab::Size],
-            NgramType::Trigrams => vec![SettingsTab::Language, SettingsTab::NgramType, SettingsTab::Size],
-            NgramType::Words => vec![SettingsTab::Language, SettingsTab::NgramType, SettingsTab::WordsRarity, SettingsTab::IncludeLetter, SettingsTab::Size],
-        },
-    };
-
-    let active_tab_index = tabs.iter().position(|tab| tab == active_tab).expect("active tab was not in the tab list?");
-    (tabs, active_tab_index)
+struct TestUI {
+    settings_tabs: Vec<SettingsTab>,
+    languages: Vec<TestLanguage>,
+    ngrams: Vec<NgramType>,
+    words_rarities: Vec<WordsRarity>,
+    sizes: Vec<TestSize>,
 }
 
+fn get_index<T: PartialEq + Copy>(current_item: T, items: &[T]) -> usize {
+    items.iter().position(|v| *v == current_item).expect("current item is not in items vec")
+}
+
+fn get_next<T: PartialEq + Copy>(current_item: T, items: &[T]) -> T {
+    let index = get_index(current_item, items);
+    let next_index = (index + 1) % items.len();
+    items[next_index]
+}
+
+fn get_previous<T: PartialEq + Copy>(current_item: T, items: &[T]) -> T {
+    let index = get_index(current_item, items);
+    let previous_index = (items.len() + index - 1) % items.len();
+    items[previous_index]
+}
+
+fn build_settings_tabs(test_settings: &TestSettings) -> Vec<SettingsTab> {
+    match test_settings.language {
+        TestLanguage::Numbers => vec![
+            SettingsTab::Language,
+            SettingsTab::Size
+        ],
+        TestLanguage::Symbols => vec![
+            SettingsTab::Language,
+            SettingsTab::Size
+        ],
+        TestLanguage::Natural(_) => match test_settings.ngram {
+            NgramType::Letters => vec![
+                SettingsTab::Language,
+                SettingsTab::NgramType,
+                SettingsTab::SelectLetters,
+                SettingsTab::Size
+            ],
+            NgramType::Bigrams => vec![
+                SettingsTab::Language,
+                SettingsTab::NgramType,
+                SettingsTab::Size
+            ],
+            NgramType::Trigrams => vec![
+                SettingsTab::Language,
+                SettingsTab::NgramType,
+                SettingsTab::Size
+            ],
+            NgramType::Words => vec![
+                SettingsTab::Language,
+                SettingsTab::NgramType,
+                SettingsTab::WordsRarity,
+                SettingsTab::IncludeLetter,
+                SettingsTab::Size
+            ],
+        },
+    }
+}
+
+trait WithName {
+    fn get_name(self, typing_data: &TypingData) -> String;
+}
+
+#[derive(PartialEq, Copy, Clone, Debug)]
 enum TestLanguage {
     Numbers,
     Symbols,
     Natural(usize)
 }
 
-#[derive(PartialEq, Copy, Clone, Debug, EnumCount, FromRepr, IntoUsize)]
+impl WithName for TestLanguage {
+    fn get_name(self, typing_data: &TypingData) -> String {
+        match self {
+            TestLanguage::Numbers => "numbers".to_string(),
+            TestLanguage::Symbols => "symbols".to_string(),
+            TestLanguage::Natural(index) => typing_data.natural_languages[index].name.clone(),
+        }
+    }
+}
+
+#[derive(PartialEq, Copy, Clone, Debug)]
 #[repr(usize)]
 enum NgramType {
     Letters,
@@ -69,7 +125,18 @@ enum NgramType {
     Words,
 }
 
-#[derive(PartialEq, Copy, Clone, Debug, EnumCount, FromRepr, IntoUsize)]
+impl WithName for NgramType {
+    fn get_name(self, typing_data: &TypingData) -> String {
+        match self {
+            NgramType::Letters => "letters".to_string(),
+            NgramType::Bigrams => "bigrams".to_string(),
+            NgramType::Trigrams => "trigrams".to_string(),
+            NgramType::Words => "words".to_string(),
+        }
+    }
+}
+
+#[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
 #[repr(usize)]
 enum WordsRarity {
     VeryCommon,
@@ -78,13 +145,35 @@ enum WordsRarity {
     VeryRare,
 }
 
-#[derive(PartialEq, Copy, Clone, Debug, EnumCount, FromRepr, IntoUsize)]
+impl WithName for WordsRarity {
+    fn get_name(self, typing_data: &TypingData) -> String {
+        match self {
+            WordsRarity::VeryCommon => "very common".to_string(),
+            WordsRarity::Common => "common".to_string(),
+            WordsRarity::Rare => "rare".to_string(),
+            WordsRarity::VeryRare => "very rare".to_string(),
+        }
+    }
+}
+
+#[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
 #[repr(usize)]
 enum TestSize {
     VerySmall,
     Small,
     Medium,
     Large,
+}
+
+impl WithName for TestSize {
+    fn get_name(self, typing_data: &TypingData) -> String {
+        match self {
+            TestSize::VerySmall => "very small".to_string(),
+            TestSize::Small => "small".to_string(),
+            TestSize::Medium => "medium".to_string(),
+            TestSize::Large => "very large".to_string(),
+        }
+    }
 }
 
 struct TypingConfigNaturalLanguage {
@@ -113,8 +202,8 @@ struct DataMonkeytype {
 struct TypingData {
     numbers: Vec<char>,
     symbols: Vec<char>,
-    natural_languages_data: Vec<TypingDataNaturalLanguage>,
-    test_sizes: [usize; TestSize::COUNT],
+    natural_languages: Vec<TypingDataNaturalLanguage>,
+    test_sizes: HashMap<TestSize, usize>,
 }
 
 struct TypingDataNaturalLanguage {
@@ -123,7 +212,7 @@ struct TypingDataNaturalLanguage {
     alphabet_dict: HashMap<char, usize>,
     bigrams: Vec<String>,
     trigrams: Vec<String>,
-    words: [NaturalLanguageWords; WordsRarity::COUNT],
+    words: HashMap<WordsRarity, NaturalLanguageWords>,
 }
 
 struct NaturalLanguageWords {
@@ -132,14 +221,14 @@ struct NaturalLanguageWords {
 }
 
 struct Localization {
-    ngram_types: [String; NgramType::COUNT],
-    word_rarities: [String; WordsRarity::COUNT],
-    test_sizes: [String; TestSize::COUNT]
+    languages: Vec<String>,
+    ngrams: Vec<String>,
+    words_rarities: Vec<String>,
+    sizes: Vec<String>,
 }
 
 struct State {
     typing_data: TypingData,
-    localization: Localization,
     test_data: TestData,
     test_state: TestState,
     test_start_time: Instant,
@@ -148,7 +237,7 @@ struct State {
     wrong_keys_pressed: usize,
     show_settings: bool,
     test_settings: TestSettings,
-    active_settings_tab: SettingsTab,
+    test_ui: TestUI,
     exit: bool,
 }
 
@@ -176,17 +265,29 @@ enum SettingsTab {
     Size,
 }
 
+impl WithName for SettingsTab {
+    fn get_name(self, typing_data: &TypingData) -> String {
+        match self {
+            SettingsTab::Language => "language".to_string(),
+            SettingsTab::NgramType => "ngram type".to_string(),
+            SettingsTab::WordsRarity => "words rarity".to_string(),
+            SettingsTab::IncludeLetter => "include letter".to_string(),
+            SettingsTab::SelectLetters => "select letters".to_string(),
+            SettingsTab::Size => "test size".to_string(),
+        }
+    }
+}
+
 fn main() {
     setup_logging();
 
     let typing_data = load_typing_data();
-    let localization = load_localization();
     let test_settings = get_default_test_settings(&typing_data);
     let test_data = generate_test_data(&typing_data, &test_settings);
+    let test_ui = get_default_ui(&typing_data, &test_settings);
     let time = Instant::now();
     let state = State {
         typing_data,
-        localization,
         test_data,
         test_state: TestState::Waiting,
         test_start_time: time,
@@ -195,7 +296,7 @@ fn main() {
         wrong_keys_pressed: 0,
         show_settings: false,
         test_settings,
-        active_settings_tab: SettingsTab::Language,
+        test_ui,
         exit: false,
     };
 
@@ -203,14 +304,53 @@ fn main() {
 }
 
 fn get_default_test_settings(typing_data: &TypingData) -> TestSettings {
-    let natural_languages_count = typing_data.natural_languages_data.len();
+    let natural_languages_count = typing_data.natural_languages.len();
     TestSettings {
+        active_settings_tab: SettingsTab::Language,
         language: TestLanguage::Natural(0),
         ngram: NgramType::Words,
         words_rarity: WordsRarity::Common,
         natural_language_configs: HashMap::with_capacity(natural_languages_count),
         size: TestSize::Small,
     }
+}
+
+fn get_default_ui(typing_data: &TypingData, test_settings: &TestSettings) -> TestUI {
+    let natural_languages_count = typing_data.natural_languages.len();
+
+    let mut languages = Vec::with_capacity(2 + natural_languages_count);
+    languages.push(TestLanguage::Numbers);
+    languages.push(TestLanguage::Symbols);
+    for i in 0..natural_languages_count {
+        languages.push(TestLanguage::Natural(i));
+    }
+
+    TestUI {
+        settings_tabs: build_settings_tabs(test_settings),
+        languages,
+        ngrams: vec![
+            NgramType::Letters,
+            NgramType::Bigrams,
+            NgramType::Trigrams,
+            NgramType::Words
+        ],
+        words_rarities: vec![
+            WordsRarity::VeryCommon,
+            WordsRarity::Common,
+            WordsRarity::Rare,
+            WordsRarity::VeryRare
+        ],
+        sizes: vec![
+            TestSize::VerySmall,
+            TestSize::Small,
+            TestSize::Medium,
+            TestSize::Large
+        ],
+    }
+}
+
+fn rebuild_ui(ui: &mut TestUI, typing_data: &TypingData, test_settings: &TestSettings) {
+    ui.settings_tabs = build_settings_tabs(test_settings)
 }
 
 fn setup_logging() -> Result<()> {
@@ -246,18 +386,18 @@ fn generate_test_data(typing_data: &TypingData, test_settings: &TestSettings) ->
 }
 
 fn generate_test_lines(typing_data: &TypingData, test_settings: &TestSettings) -> (Vec<Vec<String>>, usize) {
-    let lines_count = typing_data.test_sizes[test_settings.size as usize];
+    let lines_count = typing_data.test_sizes[&test_settings.size];
     match test_settings.language {
         TestLanguage::Numbers => RandomWordGenerator::new(&typing_data.numbers, 6).generate_lines(lines_count),
         TestLanguage::Symbols => RandomWordGenerator::new(&typing_data.symbols, 4).generate_lines(lines_count),
         TestLanguage::Natural(index) => {
-            let language_data = &typing_data.natural_languages_data[index];
+            let language_data = &typing_data.natural_languages[index];
             match test_settings.ngram {
                 NgramType::Letters => RandomWordSelector::new(&language_data.bigrams).generate_lines(lines_count),
                 NgramType::Bigrams => RandomWordSelector::new(&language_data.bigrams).generate_lines(lines_count),
                 NgramType::Trigrams => RandomWordSelector::new(&language_data.trigrams).generate_lines(lines_count),
                 NgramType::Words => {
-                    let words = &language_data.words[test_settings.words_rarity as usize];
+                    let words = &language_data.words[&test_settings.words_rarity];
                     RandomWordSelector::new(&words.all_words).generate_lines(lines_count)
                 }
             }
@@ -453,56 +593,38 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
             return;
         },
         KeyCode::Tab => {
-            let (settings_tabs, active_settings_tab_index) = build_settings_tabs(&state.test_settings, &state.active_settings_tab);
-            let new_active_settings_tab_index = (active_settings_tab_index + 1) % settings_tabs.len();
-            state.active_settings_tab = settings_tabs[new_active_settings_tab_index];
+            state.test_settings.active_settings_tab = get_next(state.test_settings.active_settings_tab, &state.test_ui.settings_tabs);
             state.show_settings = true;
             return;
         },
         KeyCode::BackTab => {
-            let (settings_tabs, active_settings_tab_index) = build_settings_tabs(&state.test_settings, &state.active_settings_tab);
-            let new_active_settings_tab_index = (settings_tabs.len() + active_settings_tab_index - 1) % settings_tabs.len();
-            state.active_settings_tab = settings_tabs[new_active_settings_tab_index];
+            state.test_settings.active_settings_tab = get_previous(state.test_settings.active_settings_tab, &state.test_ui.settings_tabs);
             state.show_settings = true;
             return;
         },
-        KeyCode::Down => {
-            if state.show_settings {
-                if state.active_settings_tab == SettingsTab::NgramType {
-                    state.test_settings.ngram = state.test_settings.ngram.increment();
-                    start_new_test(state);
-                    return;
-                }
-                if state.active_settings_tab == SettingsTab::WordsRarity {
-                    state.test_settings.words_rarity = state.test_settings.words_rarity.increment();
-                    start_new_test(state);
-                    return;
-                }
-                if state.active_settings_tab == SettingsTab::Size {
-                    state.test_settings.size = state.test_settings.size.increment();
-                    start_new_test(state);
-                    return;
-                }
-            }
+        KeyCode::Down => if state.show_settings {
+            match state.test_settings.active_settings_tab {
+                SettingsTab::Language => state.test_settings.language = get_next(state.test_settings.language, &state.test_ui.languages),
+                SettingsTab::NgramType => state.test_settings.ngram = get_next(state.test_settings.ngram, &state.test_ui.ngrams),
+                SettingsTab::WordsRarity => state.test_settings.words_rarity = get_next(state.test_settings.words_rarity, &state.test_ui.words_rarities),
+                SettingsTab::Size => state.test_settings.size = get_next(state.test_settings.size, &state.test_ui.sizes),
+                _ => {}
+            };
+            rebuild_ui(&mut state.test_ui, &state.typing_data, &state.test_settings);
+            start_new_test(state);
+            return;
         },
-        KeyCode::Up => {
-            if state.show_settings {
-                if state.active_settings_tab == SettingsTab::NgramType {
-                    state.test_settings.ngram = state.test_settings.ngram.decrement();
-                    start_new_test(state);
-                    return;
-                }
-                if state.active_settings_tab == SettingsTab::WordsRarity {
-                    state.test_settings.words_rarity = state.test_settings.words_rarity.decrement();
-                    start_new_test(state);
-                    return;
-                }
-                if state.active_settings_tab == SettingsTab::Size {
-                    state.test_settings.size = state.test_settings.size.decrement();
-                    start_new_test(state);
-                    return;
-                }
-            }
+        KeyCode::Up => if state.show_settings {
+            match state.test_settings.active_settings_tab {
+                SettingsTab::Language => state.test_settings.language = get_previous(state.test_settings.language, &state.test_ui.languages),
+                SettingsTab::NgramType => state.test_settings.ngram = get_previous(state.test_settings.ngram, &state.test_ui.ngrams),
+                SettingsTab::WordsRarity => state.test_settings.words_rarity = get_previous(state.test_settings.words_rarity, &state.test_ui.words_rarities),
+                SettingsTab::Size => state.test_settings.size = get_previous(state.test_settings.size, &state.test_ui.sizes),
+                _ => {}
+            };
+            rebuild_ui(&mut state.test_ui, &state.typing_data, &state.test_settings);
+            start_new_test(state);
+            return;
         },
         _ => {}
     }
@@ -518,7 +640,7 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
                 push_new_char(state, key_char);
                 state.test_start_time = Instant::now();
                 state.test_state = TestState::Running;
-            }
+            },
             _ => {}
         }
         TestState::Running => match key_event.code {
@@ -597,7 +719,7 @@ fn render(frame: &mut Frame, state: &State) {
     // TODO if stuff does not fit with max_text_height, then use text_height
     let text = generate_text_from_test(&state.test_data);
     let text_height = text.height();
-    let max_text_height = state.typing_data.test_sizes.iter().max().expect("no items in test_sizes array?").clone();
+    let max_text_height = *state.typing_data.test_sizes.values().max().expect("no items in test_sizes array?");
     let text_area = Rect::new(
         get_center(frame_area.width, MAX_LINE_LENGTH as u16),
         get_center(frame_area.height, max_text_height as u16),
@@ -615,19 +737,19 @@ fn render(frame: &mut Frame, state: &State) {
 
     // draw settings tabs
     let separator = " • ";
-    let (settings_tabs, active_settings_tab_index) = build_settings_tabs(&state.test_settings, &state.active_settings_tab);
+    let active_settings_tab_index = get_index(state.test_settings.active_settings_tab, &state.test_ui.settings_tabs);
     let active_settings_tab_style = Style::default().add_modifier(Modifier::UNDERLINED);
-    let mut tab_names = Vec::with_capacity(settings_tabs.len() * 2 - 1); // reserve space for tab names and separators
-    for (i, settings_tab) in settings_tabs.iter().enumerate() {
-        let settings_tab_name = get_settings_tab_name(settings_tab);
-        if i == active_settings_tab_index {
+    let mut tab_names = Vec::with_capacity(state.test_ui.settings_tabs.len() * 2 + 1); // reserve space for tab names and separators
+
+    tab_names.push(Span::from(separator));
+    for settings_tab in &state.test_ui.settings_tabs {
+        let settings_tab_name = settings_tab.get_name(&state.typing_data);
+        if *settings_tab == state.test_settings.active_settings_tab {
             tab_names.push(Span::styled(settings_tab_name, active_settings_tab_style));
         } else {
             tab_names.push(Span::from(settings_tab_name));
         }
-        if i < settings_tabs.len() - 1 {
-            tab_names.push(Span::from(separator));
-        }
+        tab_names.push(Span::from(separator));
     }
 
     let active_tab_name_x_local = get_tab_name_x(active_settings_tab_index, &tab_names);
@@ -665,7 +787,7 @@ fn render(frame: &mut Frame, state: &State) {
     // draw settings options
     if state.show_settings {
         let text = get_settings_options(state);
-        let title_name = get_settings_tab_name(&state.active_settings_tab);
+        let title_name = state.test_settings.active_settings_tab.get_name(&state.typing_data);
         let title = Line::styled(title_name, active_settings_tab_style);
         let text_area_width = title.width() + 4;
         let text_area_height = text.height() + 2;
@@ -681,9 +803,10 @@ fn get_center(parent_size: u16, child_size: u16) -> u16 {
 }
 
 fn get_tab_name_x(tab_index: usize, tab_names: &Vec<Span>) -> u16 {
+    let real_index = tab_index * 2 + 1;
     let mut x: usize = 0;
     for (i, tab_name) in tab_names.iter().enumerate() {
-        if i / 2 == tab_index {
+        if i == real_index {
             break;
         }
         x += tab_name.width();
@@ -691,33 +814,16 @@ fn get_tab_name_x(tab_index: usize, tab_names: &Vec<Span>) -> u16 {
     x as u16
 }
 
-fn get_settings_tab_name(tab: &SettingsTab) -> String {
-    let name = match tab {
-        SettingsTab::Language => "language",
-        SettingsTab::NgramType => "ngram type",
-        SettingsTab::WordsRarity => "words rarity",
-        SettingsTab::IncludeLetter => "include letter",
-        SettingsTab::SelectLetters => "select letters",
-        SettingsTab::Size => "test size",
-    };
-    name.to_string()
-}
-
 fn get_settings_options<'a>(state: &'a State) -> Text<'a> {
-    match state.active_settings_tab {
+    match state.test_settings.active_settings_tab {
         SettingsTab::Language => {
-            Text::from(vec![
-                Line::from("numbers").centered(),
-                Line::from("symbols").centered(),
-                Line::from("english").centered().style(Style::default().fg(Color::Yellow)),
-                Line::from("russian").centered(),
-            ])
+            get_settings_options_text(&state.test_ui.languages, state.test_settings.language, &state.typing_data)
         },
         SettingsTab::NgramType => {
-            get_settings_options_from_names(&state.localization.ngram_types, state.test_settings.ngram.into())
+            get_settings_options_text(&state.test_ui.ngrams, state.test_settings.ngram, &state.typing_data)
         },
         SettingsTab::WordsRarity => {
-            get_settings_options_from_names(&state.localization.word_rarities, state.test_settings.words_rarity.into())
+            get_settings_options_text(&state.test_ui.words_rarities, state.test_settings.words_rarity, &state.typing_data)
         },
         SettingsTab::IncludeLetter => {
             Text::from(vec![
@@ -729,22 +835,23 @@ fn get_settings_options<'a>(state: &'a State) -> Text<'a> {
         },
         SettingsTab::SelectLetters => {
             Text::from(vec![
-                Line::from("test").centered(),
-                Line::from("test").centered(),
-                Line::from("test").centered(),
-                Line::from("test").centered(),
+                Line::from("a b c d e f g").centered(),
+                Line::from("h i j k l m n").centered(),
+                Line::from("o p q r s t u").centered(),
+                Line::from("v w x y z    ").centered(),
             ])
         },
         SettingsTab::Size => {
-            get_settings_options_from_names(&state.localization.test_sizes, state.test_settings.size.into())
+            get_settings_options_text(&state.test_ui.sizes, state.test_settings.size, &state.typing_data)
         },
     }
 }
 
-fn get_settings_options_from_names<'a>(names: &'a [String], active_option_index: usize) -> Text<'a> {
-    let mut lines = Vec::with_capacity(names.len());
-    for (i, name) in names.iter().enumerate() {
-        if i == active_option_index {
+fn get_settings_options_text<'a, T: WithName + Copy + PartialEq>(options: &[T], active_option: T, typing_data: &TypingData) -> Text<'a> {
+    let mut lines = Vec::with_capacity(options.len());
+    for option in options {
+        let name = option.get_name(typing_data);
+        if *option == active_option {
             lines.push(Line::styled(name, Style::default().fg(Color::Yellow)).centered());
         } else {
             lines.push(Line::styled(name, Style::default()).centered());
@@ -803,7 +910,7 @@ fn load_typing_data() -> TypingData {
     let numbers = load_from_json_file::<Vec<char>>(&root.join("numbers.json"));
     let symbols = load_from_json_file::<Vec<char>>(&root.join("symbols.json"));
     let languages = load_from_json_file::<Vec<DataLanguage>>(&root.join("languages.json"));
-    let mut natural_languages_data = Vec::with_capacity(languages.len());
+    let mut natural_languages = Vec::with_capacity(languages.len());
 
     for language in languages {
         let name = language.name;
@@ -822,26 +929,26 @@ fn load_typing_data() -> TypingData {
         remove_one_letter_words(&mut words_rare);
         remove_one_letter_words(&mut words_very_rare);
 
-        let words = [
-            NaturalLanguageWords {
+        let words = HashMap::from([
+            (WordsRarity::VeryCommon, NaturalLanguageWords {
                 per_letter: build_letter_to_words_dict(&words_very_common, &alphabet),
                 all_words: words_very_common,
-            },
-            NaturalLanguageWords {
+            }),
+            (WordsRarity::Common, NaturalLanguageWords {
                 per_letter: build_letter_to_words_dict(&words_common, &alphabet),
                 all_words: words_common,
-            },
-            NaturalLanguageWords {
+            }),
+            (WordsRarity::Rare, NaturalLanguageWords {
                 per_letter: build_letter_to_words_dict(&words_rare, &alphabet),
                 all_words: words_rare,
-            },
-            NaturalLanguageWords {
+            }),
+            (WordsRarity::VeryRare, NaturalLanguageWords {
                 per_letter: build_letter_to_words_dict(&words_very_rare, &alphabet),
                 all_words: words_very_rare,
-            },
-        ];
+            }),
+        ]);
 
-        natural_languages_data.push(TypingDataNaturalLanguage {
+        natural_languages.push(TypingDataNaturalLanguage {
             name,
             alphabet,
             alphabet_dict,
@@ -854,16 +961,13 @@ fn load_typing_data() -> TypingData {
     TypingData {
         numbers,
         symbols,
-        natural_languages_data,
-        test_sizes: [1, 3, 6, 12],
-    }
-}
-
-fn load_localization() -> Localization {
-    Localization {
-        ngram_types: strings!["letters", "bigrams", "trigrams", "words"],
-        word_rarities: strings!["very common", "common", "rare", "very rare"],
-        test_sizes: strings!["very small", "small", "medium", "large"],
+        natural_languages,
+        test_sizes: HashMap::from([
+            (TestSize::VerySmall, 1),
+            (TestSize::Small, 3),
+            (TestSize::Medium, 6),
+            (TestSize::Large, 12),
+        ])
     }
 }
 
