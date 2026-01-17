@@ -246,67 +246,65 @@ fn generate_test_data(typing_data: &TypingData, test_settings: &TestSettings) ->
 }
 
 fn generate_test_lines(typing_data: &TypingData, test_settings: &TestSettings) -> (Vec<Vec<String>>, usize) {
-    let mut line_index = 0;
-    let mut line_length = 0;
-    let mut total_length = 0;
-
     let lines_count = typing_data.test_sizes[test_settings.size as usize];
-    let max_line_length = MAX_LINE_LENGTH;
-    let mut result_lines = Vec::with_capacity(lines_count);
-    let mut current_line = Vec::new();
-
-    let mut word_generator = build_word_generator(typing_data, test_settings);
-
-    loop {
-        let next_word = word_generator.next();
-        let next_word_length = next_word.chars().count() + 1; // put space after every word
-        if next_word_length > max_line_length {
-            // really long words can screw up algorithm
-            break;
-        }
-        if line_length + next_word_length > max_line_length {
-            if line_index >= lines_count - 1 {
-                break;
-            }
-
-            result_lines.push(current_line);
-            current_line = Vec::new();
-
-            line_length = 0;
-            line_index += 1;
-        }
-
-        line_length += next_word_length;
-        total_length += next_word_length;
-        current_line.push(next_word);
-    }
-
-    result_lines.push(current_line);
-
-    (result_lines, total_length)
-}
-
-fn build_word_generator<'a>(typing_data: &'a TypingData, test_settings: &'a TestSettings) -> Box<dyn WordGenerator + 'a> {
     match test_settings.language {
-        TestLanguage::Numbers => Box::new(RandomWordGenerator::new(&typing_data.numbers, 6)),
-        TestLanguage::Symbols => Box::new(RandomWordGenerator::new(&typing_data.symbols, 4)),
+        TestLanguage::Numbers => RandomWordGenerator::new(&typing_data.numbers, 6).generate_lines(lines_count),
+        TestLanguage::Symbols => RandomWordGenerator::new(&typing_data.symbols, 4).generate_lines(lines_count),
         TestLanguage::Natural(index) => {
             let language_data = &typing_data.natural_languages_data[index];
             match test_settings.ngram {
-                NgramType::Letters => Box::new(RandomWordSelector::new(&language_data.bigrams)),
-                NgramType::Bigrams => Box::new(RandomWordSelector::new(&language_data.bigrams)),
-                NgramType::Trigrams => Box::new(RandomWordSelector::new(&language_data.trigrams)),
+                NgramType::Letters => RandomWordSelector::new(&language_data.bigrams).generate_lines(lines_count),
+                NgramType::Bigrams => RandomWordSelector::new(&language_data.bigrams).generate_lines(lines_count),
+                NgramType::Trigrams => RandomWordSelector::new(&language_data.trigrams).generate_lines(lines_count),
                 NgramType::Words => {
                     let words = &language_data.words[test_settings.words_rarity as usize];
-                    Box::new(RandomWordSelector::new(&words.all_words))
-                },
+                    RandomWordSelector::new(&words.all_words).generate_lines(lines_count)
+                }
             }
         }
     }
 }
 
-trait WordGenerator {
-    fn next(&mut self) -> String;
+trait TestGenerator {
+    fn generate_lines(&mut self, lines_count: usize) -> (Vec<Vec<String>>, usize) {
+        let mut line_index = 0;
+        let mut line_length = 0;
+        let mut total_length = 0;
+
+        let max_line_length = MAX_LINE_LENGTH;
+        let mut result_lines = Vec::with_capacity(lines_count);
+        let mut current_line = Vec::new();
+
+        loop {
+            let next_word = self.generate_next_word();
+            let next_word_length = next_word.chars().count() + 1; // put space after every word
+            if next_word_length > max_line_length {
+                // really long words can screw up algorithm
+                break;
+            }
+            if line_length + next_word_length > max_line_length {
+                if line_index >= lines_count - 1 {
+                    break;
+                }
+
+                result_lines.push(current_line);
+                current_line = Vec::new();
+
+                line_length = 0;
+                line_index += 1;
+            }
+
+            line_length += next_word_length;
+            total_length += next_word_length;
+            current_line.push(next_word);
+        }
+
+        result_lines.push(current_line);
+
+        (result_lines, total_length)
+    }
+
+    fn generate_next_word(&mut self) -> String;
 }
 
 struct RandomWordGenerator<'a> {
@@ -363,8 +361,8 @@ impl<'a> RandomWordGenerator<'a> {
     }
 }
 
-impl<'a> WordGenerator for RandomWordGenerator<'a> {
-    fn next(&mut self) -> String {
+impl<'a> TestGenerator for RandomWordGenerator<'a> {
+    fn generate_next_word(&mut self) -> String {
         self.get_next_word()
     }
 }
@@ -386,8 +384,8 @@ impl<'a> RandomWordSelector<'a> {
     }
 }
 
-impl<'a> WordGenerator for RandomWordSelector<'a> {
-    fn next(&mut self) -> String {
+impl<'a> TestGenerator for RandomWordSelector<'a> {
+    fn generate_next_word(&mut self) -> String {
         self.get_next_word()
     }
 }
