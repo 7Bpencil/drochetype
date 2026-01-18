@@ -273,11 +273,14 @@ struct Localization {
 struct State {
     typing_data: TypingData,
     test_data: TestData,
+
+    // TODO this can be in separate struct
     test_state: TestState,
     test_start_time: Instant,
     test_end_time: Instant,
     total_keys_pressed: usize,
     wrong_keys_pressed: usize,
+
     show_settings: bool,
     test_settings: TestSettings,
     test_ui: TestUI,
@@ -680,6 +683,11 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
         return;
     };
 
+    if !state.show_settings && key_event.code == KeyCode::Enter {
+        state.show_settings = true;
+        return;
+    }
+
     match key_event.code {
         KeyCode::Esc => {
             if state.show_settings {
@@ -687,8 +695,17 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
                 return;
             }
         }
-        KeyCode::Enter => {
-            state.show_settings = !state.show_settings;
+        KeyCode::Enter => if state.show_settings {
+            if state.test_settings.active_settings_tab == SettingsTab::SelectLetters {
+                if let TestLanguage::Natural(index) = state.test_settings.language {
+                    let language_config = &mut state.test_settings.natural_language_configs[index];
+                    // TODO enter in select letters tab changes priority letter
+                    rebuild_ui(&mut state.test_ui, &state.typing_data, &state.test_settings);
+                    start_new_test(state);
+                }
+            } else {
+                state.show_settings = !state.show_settings;
+            }
             return;
         },
         KeyCode::Tab => {
