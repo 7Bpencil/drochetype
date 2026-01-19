@@ -115,6 +115,17 @@ fn row_from_index(index: usize, columns_count: usize) -> usize {
 fn index_from_column_row(column: usize, row: usize, columns_count: usize) -> usize {
     row * columns_count + column
 }
+
+fn shuffle_vec<T>(vec: &mut [T]) {
+    let mut rng = rand::rng();
+    vec.shuffle(&mut rng);
+}
+
+fn random_element<T>(vec: &[T]) -> &T {
+    let random_index = rand::random_range(0..vec.len());
+    &vec[random_index]
+}
+
 trait WithName {
     fn get_name(self, data: &Data) -> String;
 }
@@ -562,18 +573,13 @@ impl<'a> RandomWordGenerator<'a> {
     fn new(alphabet: &'a Vec<char>, word_length: usize) -> RandomWordGenerator<'a> {
         assert!(!alphabet.is_empty());
         let mut alphabet_indices: Vec<usize> = (0..alphabet.len()).collect();
-        Self::shuffle_vec(&mut alphabet_indices);
+        shuffle_vec(&mut alphabet_indices);
         RandomWordGenerator {
             alphabet,
             word_length,
             alphabet_indices,
             next_index: 0,
         }
-    }
-
-    fn shuffle_vec(vec: &mut [usize]) {
-        let mut rng = rand::rng();
-        vec.shuffle(&mut rng);
     }
 
     fn get_next_word(&mut self) -> String {
@@ -595,7 +601,7 @@ impl<'a> RandomWordGenerator<'a> {
 
     fn get_next_letter(&mut self) -> char {
         if self.next_index >= self.alphabet_indices.len() {
-            Self::shuffle_vec(&mut self.alphabet_indices);
+            shuffle_vec(&mut self.alphabet_indices);
             self.next_index = 0;
         }
 
@@ -624,8 +630,7 @@ impl<'a> RandomWordSelector<'a> {
 
     fn get_next_word(&self) -> String {
         assert!(!self.words.is_empty());
-        let index = rand::random_range(0..self.words.len());
-        self.words[index].clone()
+        random_element(self.words).clone()
     }
 }
 
@@ -652,8 +657,7 @@ impl<'a> RandomWordSelectorIndexed<'a> {
         if self.indexes.is_empty() {
             "no words".to_string()
         } else {
-            let index = rand::random_range(0..self.indexes.len());
-            self.all_words[self.indexes[index]].clone()
+            self.all_words[*random_element(self.indexes)].clone()
         }
     }
 }
