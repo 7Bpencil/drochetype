@@ -102,8 +102,9 @@ struct Settings {
 
 struct NaturalLanguageConfig {
     include_letter: IncludeLetter,
-    learn_letters: HashSet<usize>,
-    learn_letters_priority: Option<usize>,
+    select_letters: HashSet<char>,
+    select_letters_priority: Option<char>,
+    select_letters_pointer: char,
 }
 
 struct UI {
@@ -288,8 +289,9 @@ fn get_default_settings(data: &Data) -> Settings {
 fn get_default_natural_language_config(natural_language: &NaturalLanguageData) -> NaturalLanguageConfig {
     NaturalLanguageConfig {
         include_letter: IncludeLetter::All,
-        learn_letters: HashSet::with_capacity(natural_language.alphabet.len()),
-        learn_letters_priority: None,
+        select_letters: HashSet::with_capacity(natural_language.alphabet.len()),
+        select_letters_priority: None,
+        select_letters_pointer: natural_language.alphabet[0],
     }
 }
 
@@ -671,7 +673,20 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
             if state.settings.active_settings_tab == SettingsTab::SelectLetters {
                 if let TestLanguage::Natural(index) = state.settings.language {
                     let language_config = &mut state.settings.natural_language_configs[index];
-                    // TODO enter in select letters tab changes priority letter
+
+                    // cycle pointer letter state:
+                    if !language_config.select_letters.contains(&language_config.select_letters_pointer) {
+                        // not included -> priority
+                        language_config.select_letters.insert(language_config.select_letters_pointer);
+                        language_config.select_letters_priority = Some(language_config.select_letters_pointer);
+                    }  else if let Some(priority) = language_config.select_letters_priority && language_config.select_letters_pointer == priority {
+                        // priority -> included
+                        language_config.select_letters_priority = None;
+                    } else {
+                        // included -> not included
+                        language_config.select_letters.remove(&language_config.select_letters_pointer);
+                    }
+
                     rebuild_ui(&mut state.ui, &state.data, &state.settings);
                     start_new_test(state);
                 }
@@ -701,9 +716,17 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
                         language_config.include_letter = get_next_row(language_config.include_letter, &state.ui.include_letters, INCLUDE_LETTER_UI_MATRIX_WIDTH);
                     }
                 }
+                SettingsTab::SelectLetters => {
+                    if let TestLanguage::Natural(index) = state.settings.language {
+                        let language_data = &state.data.natural_languages[index];
+                        let language_config = &mut state.settings.natural_language_configs[index];
+                        language_config.select_letters_pointer = get_next_row(language_config.select_letters_pointer, &language_data.alphabet, INCLUDE_LETTER_UI_MATRIX_WIDTH);
+                    }
+                }
                 SettingsTab::Size => state.settings.size = get_next(state.settings.size, &state.ui.sizes),
                 _ => {}
             };
+            // TODO full ui rebuild is not required in some cases
             rebuild_ui(&mut state.ui, &state.data, &state.settings);
             start_new_test(state);
             return;
@@ -719,6 +742,13 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
                         language_config.include_letter = get_previous_row(language_config.include_letter, &state.ui.include_letters, INCLUDE_LETTER_UI_MATRIX_WIDTH);
                     }
                 }
+                SettingsTab::SelectLetters => {
+                    if let TestLanguage::Natural(index) = state.settings.language {
+                        let language_data = &state.data.natural_languages[index];
+                        let language_config = &mut state.settings.natural_language_configs[index];
+                        language_config.select_letters_pointer = get_previous_row(language_config.select_letters_pointer, &language_data.alphabet, INCLUDE_LETTER_UI_MATRIX_WIDTH);
+                    }
+                }
                 SettingsTab::Size => state.settings.size = get_previous(state.settings.size, &state.ui.sizes),
                 _ => {}
             };
@@ -732,8 +762,16 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
                     if let TestLanguage::Natural(index) = state.settings.language {
                         let language_config = &mut state.settings.natural_language_configs[index];
                         language_config.include_letter = get_next(language_config.include_letter, &state.ui.include_letters);
+
                         rebuild_ui(&mut state.ui, &state.data, &state.settings);
                         start_new_test(state);
+                    }
+                },
+                SettingsTab::SelectLetters => {
+                    if let TestLanguage::Natural(index) = state.settings.language {
+                        let language_data = &state.data.natural_languages[index];
+                        let language_config = &mut state.settings.natural_language_configs[index];
+                        language_config.select_letters_pointer = get_next(language_config.select_letters_pointer, &language_data.alphabet);
                     }
                 }
                 _ => {}
@@ -746,8 +784,16 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
                     if let TestLanguage::Natural(index) = state.settings.language {
                         let language_config = &mut state.settings.natural_language_configs[index];
                         language_config.include_letter = get_previous(language_config.include_letter, &state.ui.include_letters);
+
                         rebuild_ui(&mut state.ui, &state.data, &state.settings);
                         start_new_test(state);
+                    }
+                },
+                SettingsTab::SelectLetters => {
+                    if let TestLanguage::Natural(index) = state.settings.language {
+                        let language_data = &state.data.natural_languages[index];
+                        let language_config = &mut state.settings.natural_language_configs[index];
+                        language_config.select_letters_pointer = get_previous(language_config.select_letters_pointer, &language_data.alphabet);
                     }
                 }
                 _ => {}
@@ -958,12 +1004,13 @@ fn get_settings_options<'a>(state: &'a State) -> Text<'a> {
             }
         },
         SettingsTab::SelectLetters => {
-            Text::from(vec![
-                Line::from("a b c d e f g").centered(),
-                Line::from("h i j k l m n").centered(),
-                Line::from("o p q r s t u").centered(),
-                Line::from("v w x y z    ").centered(),
-            ])
+            if let TestLanguage::Natural(index) = state.settings.language {
+                let language_data = &state.data.natural_languages[index];
+                let language_config = &state.settings.natural_language_configs[index];
+                generate_select_letters_ui_matrix(&language_data.alphabet, language_config)
+            } else {
+                panic!("WTF")
+            }
         },
         SettingsTab::Size => {
             get_settings_options_text(&state.ui.sizes, state.settings.size, &state.data)
@@ -1003,6 +1050,52 @@ fn generate_include_letter_ui_matrix<'a>(include_letters: &[IncludeLetter], incl
             } else {
                 Style::default()
             };
+
+            spans.push(Span::styled(letter_name.to_string(), letter_style));
+            letter_index += 1;
+
+            if i < INCLUDE_LETTER_UI_MATRIX_WIDTH - 1 {
+                spans.push(Span::from(' '.to_string()));
+            }
+        }
+
+        let line = Line::from(spans).centered();
+        lines.push(line);
+    }
+
+    Text::from(lines)
+}
+
+fn generate_select_letters_ui_matrix<'a>(alphabet: &[char], language_config: &NaturalLanguageConfig) -> Text<'a> {
+    let select_letters_pointer_index = get_index(language_config.select_letters_pointer, alphabet);
+    let lines_count = alphabet.len().div_ceil(INCLUDE_LETTER_UI_MATRIX_WIDTH);
+    let mut lines = Vec::with_capacity(lines_count);
+    let mut letter_index = 0;
+    for _ in 0..lines_count {
+        let mut spans = Vec::with_capacity(INCLUDE_LETTER_UI_MATRIX_WIDTH * 2 - 1);
+        for i in 0..INCLUDE_LETTER_UI_MATRIX_WIDTH {
+            let (letter_name, letter_color) = if letter_index < alphabet.len() {
+                let letter = alphabet[letter_index];
+                let color = if !language_config.select_letters.contains(&letter) {
+                    Color::Reset
+                } else if let Some(priority) = language_config.select_letters_priority && letter == priority {
+                    Color::Yellow
+                } else {
+                    Color::Green
+                };
+                (letter, color)
+            } else {
+                (' ', Color::Reset)
+            };
+
+            // TODO replace with cursor
+            let letter_modifier = if letter_index == select_letters_pointer_index {
+                Modifier::UNDERLINED
+            } else {
+                Modifier::empty()
+            };
+
+            let letter_style = Style::default().fg(letter_color).add_modifier(letter_modifier);
 
             spans.push(Span::styled(letter_name.to_string(), letter_style));
             letter_index += 1;
