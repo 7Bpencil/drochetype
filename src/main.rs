@@ -150,7 +150,6 @@ struct Data {
 struct NaturalLanguageData {
     name: String,
     alphabet: Vec<char>,
-    alphabet_dict: HashMap<char, usize>,
     bigrams: Vec<String>,
     trigrams: Vec<String>,
     words: HashMap<WordsRarity, NaturalLanguageWords>,
@@ -1422,7 +1421,6 @@ fn load_data() -> Data {
     for language in languages {
         let name = language.name;
         let alphabet = load_from_json_file::<Vec<char>>(&root.join(language.alphabet));
-        let alphabet_dict = build_alphabet_dict(&alphabet);
         let bigrams = load_from_json_file::<Vec<String>>(&root.join(language.bigrams));
         let trigrams = load_from_json_file::<Vec<String>>(&root.join(language.trigrams));
 
@@ -1458,7 +1456,6 @@ fn load_data() -> Data {
         natural_languages.push(NaturalLanguageData {
             name,
             alphabet,
-            alphabet_dict,
             bigrams,
             trigrams,
             words,
@@ -1519,14 +1516,6 @@ fn remove_one_letter_words(words: &mut Vec<String>) {
             i += 1;
         }
     }
-}
-
-fn build_alphabet_dict(alphabet: &[char]) -> HashMap<char, usize> {
-    let mut result = HashMap::new();
-    for (i, letter) in alphabet.iter().enumerate() {
-        result.insert(*letter, i);
-    }
-    result
 }
 
 fn build_letter_to_words_dict(words: &[String], alphabet: &Vec<char>) -> HashMap<char, Vec<usize>> {
