@@ -122,6 +122,7 @@ fn shuffle_vec<T>(vec: &mut [T]) {
 }
 
 fn random_element<T>(vec: &[T]) -> &T {
+    assert!(!vec.is_empty());
     let random_index = rand::random_range(0..vec.len());
     &vec[random_index]
 }
@@ -505,7 +506,7 @@ fn generate_test_lines(data: &Data, settings: &Settings) -> (Vec<Vec<String>>, u
             let language_data = &data.natural_languages[index];
             let language_config = &settings.natural_language_configs[index];
             match settings.ngram {
-                NgramType::Letters => RandomWordSelector::new(&language_data.bigrams).generate_lines(lines_count),
+                NgramType::Letters => LetterWordGenerator::new(language_config, &language_data.alphabet, &language_data.bigrams, &language_data.trigrams).generate_lines(lines_count),
                 NgramType::Bigrams => RandomWordSelector::new(&language_data.bigrams).generate_lines(lines_count),
                 NgramType::Trigrams => RandomWordSelector::new(&language_data.trigrams).generate_lines(lines_count),
                 NgramType::Words => {
@@ -663,6 +664,199 @@ impl<'a> RandomWordSelectorIndexed<'a> {
 }
 
 impl<'a> TestGenerator for RandomWordSelectorIndexed<'a> {
+    fn generate_next_word(&mut self) -> String {
+        self.get_next_word()
+    }
+}
+
+struct LetterWordGenerator {
+    available_word_tokens_per_letter: HashMap<char, LetterTokens>,
+    available_word_tokens: Vec<String>,
+    available_word_tokens_copy: Vec<String>,
+    target_letter: Option<char>,
+}
+
+struct LetterTokens {
+    total_tokens_count: usize,
+    unique_tokens: Vec<String>,
+}
+
+impl LetterTokens {
+    fn new() -> LetterTokens {
+        LetterTokens {
+            total_tokens_count: 0,
+            unique_tokens: Vec::new(),
+        }
+    }
+
+    fn push_unique_token(&mut self, token: String) {
+        self.unique_tokens.push(token);
+        self.total_tokens_count += 1;
+    }
+
+    fn push_shared_token(&mut self) {
+        self.total_tokens_count += 1;
+    }
+
+    fn fill_tokens(&mut self, letter: char, target_tokens_count: usize, target_array: &mut Vec<String>) {
+        append_clone(&self.unique_tokens, target_array);
+        let diff = target_tokens_count - self.total_tokens_count;
+        if diff > 0 {
+            // make rare letters more common by adding letters themselves as tokens
+            // our goal is spread letters evenly across the test
+            let letter_string = letter.to_string();
+            for _ in 0..diff {
+                target_array.push(letter_string.clone());
+            }
+        }
+    }
+}
+
+fn append_clone<T: Clone>(from: &Vec<T>, to: &mut Vec<T>) {
+    for item in from {
+        to.push(item.clone());
+    }
+}
+
+impl LetterWordGenerator {
+    fn new(language_config: &NaturalLanguageConfig, alphabet: &[char], bigrams: &[String], trigrams: &[String]) -> LetterWordGenerator {
+        let letters = &language_config.select_letters;
+        if letters.is_empty() {
+            return LetterWordGenerator {
+                available_word_tokens_per_letter: HashMap::new(),
+                available_word_tokens: Vec::new(),
+                available_word_tokens_copy: Vec::new(),
+                target_letter: language_config.select_letters_priority,
+            };
+        }
+
+        let mut available_word_tokens_per_letter = HashMap::with_capacity(letters.len());
+
+        for letter in letters {
+            available_word_tokens_per_letter.insert(*letter, LetterTokens::new());
+        }
+
+        // add letters themselves as tokens because rare ones often don't have bigrams/trigrams
+        for letter in letters {
+            available_word_tokens_per_letter.get_mut(letter).unwrap().push_unique_token(letter.to_string());
+        }
+
+        // get all available bigrams
+        for bigram in bigrams {
+            let mut bigram_chars = bigram.chars();
+            let letter_0 = bigram_chars.next().expect("no left char in bigram?");
+            let letter_1 = bigram_chars.next().expect("no right char in bigram?");
+
+            // no need for repetition
+            if letter_0 == letter_1 {
+                continue;
+            }
+
+            // check if bigram can be made from selected letters
+            let is_available =
+                available_word_tokens_per_letter.contains_key(&letter_0) &&
+                available_word_tokens_per_letter.contains_key(&letter_1);
+
+            if is_available {
+                available_word_tokens_per_letter.get_mut(&letter_0).unwrap().push_unique_token(bigram.clone());
+                available_word_tokens_per_letter.get_mut(&letter_1).unwrap().push_shared_token();
+            }
+        }
+
+        // get all available trigrams
+        for trigram in trigrams {
+            let mut trigram_chars = trigram.chars();
+            let letter_0 = trigram_chars.next().expect("no left char in trigram?");
+            let letter_1 = trigram_chars.next().expect("no middle char in trigram?");
+            let letter_2 = trigram_chars.next().expect("no right char in trigram?");
+
+            // no need for repetition
+            if letter_0 == letter_1 || letter_1 == letter_2 {
+                continue
+            }
+
+            // check if bigram can be made from selected letters
+            let is_available =
+                available_word_tokens_per_letter.contains_key(&letter_0) &&
+                available_word_tokens_per_letter.contains_key(&letter_1) &&
+                available_word_tokens_per_letter.contains_key(&letter_2);
+
+            if is_available {
+                available_word_tokens_per_letter.get_mut(&letter_0).unwrap().push_unique_token(trigram.clone());
+                available_word_tokens_per_letter.get_mut(&letter_1).unwrap().push_shared_token();
+                available_word_tokens_per_letter.get_mut(&letter_2).unwrap().push_shared_token();
+            }
+        }
+
+        // calculate how many times the most frequent token appears,
+        // we will use this to increase other tokens count
+        let mut max_tokens_count = 0;
+        for (letter, letter_tokens) in &available_word_tokens_per_letter {
+            if letter_tokens.total_tokens_count > max_tokens_count {
+                max_tokens_count = letter_tokens.total_tokens_count;
+            }
+        }
+        assert!(max_tokens_count != 0);
+
+        // collect all available word tokens
+        let mut available_word_tokens = Vec::new();
+        for (letter, letter_tokens) in &mut available_word_tokens_per_letter {
+            letter_tokens.fill_tokens(*letter, max_tokens_count, &mut available_word_tokens);
+        }
+
+        let available_word_tokens_copy = Vec::with_capacity(available_word_tokens.len());
+        LetterWordGenerator {
+            available_word_tokens_per_letter,
+            available_word_tokens,
+            available_word_tokens_copy,
+            target_letter: language_config.select_letters_priority,
+        }
+    }
+
+    fn get_next_word(&mut self) -> String {
+        if self.available_word_tokens.is_empty() {
+            return "select letters".to_string();
+        }
+
+        let word_length = 3;
+
+        // target letter token can be added afterward
+        let mut word_builder = Vec::with_capacity(word_length + 1);
+        for _ in 0..word_length {
+            if self.available_word_tokens_copy.is_empty() {
+                append_clone(&self.available_word_tokens, &mut self.available_word_tokens_copy);
+                shuffle_vec(&mut self.available_word_tokens_copy);
+            }
+
+            let next_token = self.available_word_tokens_copy.pop().expect("no tokens");
+            word_builder.push(next_token);
+        }
+
+        if let Some(target_letter) = self.target_letter {
+            let mut has_target_letter = false;
+
+            for token in &word_builder {
+                for letter in token.chars() {
+                    if letter == target_letter {
+                        has_target_letter = true;
+                        break;
+                    }
+                }
+            }
+
+            if !has_target_letter {
+                let tokens_with_target_letter = &self.available_word_tokens_per_letter[&target_letter].unique_tokens;
+                let next_token = random_element(tokens_with_target_letter);
+                word_builder.push(next_token.clone());
+            }
+        }
+
+        shuffle_vec(&mut word_builder);
+        word_builder.concat()
+    }
+}
+
+impl TestGenerator for LetterWordGenerator {
     fn generate_next_word(&mut self) -> String {
         self.get_next_word()
     }
