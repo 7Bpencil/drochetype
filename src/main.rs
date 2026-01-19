@@ -979,7 +979,6 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
                     }
                 }
                 SettingsTab::Size => state.settings.size = get_next(state.settings.size, &state.ui.sizes),
-                _ => {}
             };
             // TODO full ui rebuild is not required in some cases
             rebuild_ui(&mut state.ui, &state.data, &state.settings);
@@ -1005,7 +1004,6 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
                     }
                 }
                 SettingsTab::Size => state.settings.size = get_previous(state.settings.size, &state.ui.sizes),
-                _ => {}
             };
             rebuild_ui(&mut state.ui, &state.data, &state.settings);
             start_new_test(state);
