@@ -31,32 +31,90 @@ fn get_index<T: PartialEq + Copy>(current_item: T, items: &[T]) -> usize {
 
 fn get_next<T: PartialEq + Copy>(current_item: T, items: &[T]) -> T {
     let index = get_index(current_item, items);
-    let next_index = (index + 1) % items.len();
+    let next_index = loop_index_forward(index, items.len());
     items[next_index]
 }
 
 fn get_previous<T: PartialEq + Copy>(current_item: T, items: &[T]) -> T {
     let index = get_index(current_item, items);
-    let previous_index = (items.len() + index - 1) % items.len();
+    let previous_index = loop_index_backward(index, items.len());
     items[previous_index]
 }
 
 fn get_next_row<T: PartialEq + Copy>(current_item: T, items: &[T], columns_count: usize) -> T {
     let index = get_index(current_item, items);
+    let row = row_from_index(index, columns_count);
+    let column = column_from_index(index, columns_count);
     let rows_count = items.len().div_ceil(columns_count);
-    let total_cells_count = rows_count * columns_count;
-    let next_index = (index + columns_count) % total_cells_count;
+    let mut next_index = {
+        let next_row = loop_index_forward(row, rows_count);
+        // if we hit bottom row, move to the next column
+        let next_column = if next_row == 0 {
+            loop_index_forward(column, columns_count)
+        } else {
+            column
+        };
+        index_from_column_row(next_column, next_row, columns_count)
+    };
+
+    if next_index >= items.len() {
+        // we hit unpopulated part of bottom row, loop back to first row, next column
+        let next_column = loop_index_forward(column, columns_count);
+        next_index = index_from_column_row(next_column, 0, columns_count);
+    }
+
     items[next_index]
 }
 
 fn get_previous_row<T: PartialEq + Copy>(current_item: T, items: &[T], columns_count: usize) -> T {
     let index = get_index(current_item, items);
+    let row = row_from_index(index, columns_count);
+    let column = column_from_index(index, columns_count);
     let rows_count = items.len().div_ceil(columns_count);
-    let total_cells_count = rows_count * columns_count;
-    let previous_index = (total_cells_count + index - columns_count) % total_cells_count;
+    let previous_row = loop_index_backward(row, rows_count);
+    let mut previous_index = {
+        // if we hit top row, move to the previous column
+        let previous_column = if previous_row == rows_count - 1 {
+            loop_index_backward(column, columns_count)
+        } else {
+            column
+        };
+        index_from_column_row(previous_column, previous_row, columns_count)
+    };
+
+    if previous_index >= items.len() {
+        // we hit unpopulated part of bottom row, move to row above it, previous column
+        let previous_column = loop_index_backward(column, columns_count);
+        previous_index = index_from_column_row(previous_column, previous_row - 1, columns_count);
+    }
+
     items[previous_index]
 }
 
+#[inline(always)]
+fn loop_index_forward(index: usize, width: usize) -> usize {
+    (index + 1) % width
+}
+
+#[inline(always)]
+fn loop_index_backward(index: usize, width: usize) -> usize {
+    (width + index - 1) % width
+}
+
+#[inline(always)]
+fn column_from_index(index: usize, columns_count: usize) -> usize {
+    index % columns_count
+}
+
+#[inline(always)]
+fn row_from_index(index: usize, columns_count: usize) -> usize {
+    index / columns_count
+}
+
+#[inline(always)]
+fn index_from_column_row(column: usize, row: usize, columns_count: usize) -> usize {
+    row * columns_count + column
+}
 trait WithName {
     fn get_name(self, data: &Data) -> String;
 }
