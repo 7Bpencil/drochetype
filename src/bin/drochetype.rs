@@ -123,7 +123,7 @@ fn random_element<T>(vec: &[T]) -> &T {
 }
 
 trait WithName {
-    fn get_name(self, data: &Data) -> String;
+    fn get_name(self, data: &Data) -> &str;
 }
 
 struct State {
@@ -210,14 +210,14 @@ enum SettingsTab {
 }
 
 impl WithName for SettingsTab {
-    fn get_name(self, data: &Data) -> String {
+    fn get_name(self, data: &Data) -> &str {
         match self {
-            SettingsTab::Language => "language".to_string(),
-            SettingsTab::NgramType => "ngram type".to_string(),
-            SettingsTab::WordsRarity => "words rarity".to_string(),
-            SettingsTab::IncludeLetter => "include letter".to_string(),
-            SettingsTab::SelectLetters => "select letters".to_string(),
-            SettingsTab::Size => "test size".to_string(),
+            SettingsTab::Language => "language",
+            SettingsTab::NgramType => "ngram type",
+            SettingsTab::WordsRarity => "words rarity",
+            SettingsTab::IncludeLetter => "include letter",
+            SettingsTab::SelectLetters => "select letters",
+            SettingsTab::Size => "test size",
         }
     }
 }
@@ -230,11 +230,11 @@ enum TestLanguage {
 }
 
 impl WithName for TestLanguage {
-    fn get_name(self, data: &Data) -> String {
+    fn get_name(self, data: &Data) -> &str {
         match self {
-            TestLanguage::Numbers => "numbers".to_string(),
-            TestLanguage::Symbols => "symbols".to_string(),
-            TestLanguage::Natural(index) => data.natural_languages[index].name.clone(),
+            TestLanguage::Numbers => "numbers",
+            TestLanguage::Symbols => "symbols",
+            TestLanguage::Natural(index) => &data.natural_languages[index].name,
         }
     }
 }
@@ -248,35 +248,35 @@ enum NgramType {
 }
 
 impl WithName for NgramType {
-    fn get_name(self, data: &Data) -> String {
+    fn get_name(self, data: &Data) -> &str {
         match self {
-            NgramType::Letters => "letters".to_string(),
-            NgramType::Bigrams => "bigrams".to_string(),
-            NgramType::Trigrams => "trigrams".to_string(),
-            NgramType::Words => "words".to_string(),
+            NgramType::Letters => "letters",
+            NgramType::Bigrams => "bigrams",
+            NgramType::Trigrams => "trigrams",
+            NgramType::Words => "words",
         }
     }
 }
 
 impl WithName for WordsRarity {
-    fn get_name(self, data: &Data) -> String {
+    fn get_name(self, data: &Data) -> &str {
         match self {
-            WordsRarity::VeryCommon => "very common".to_string(),
-            WordsRarity::Common => "common".to_string(),
-            WordsRarity::Rare => "rare".to_string(),
-            WordsRarity::VeryRare => "very rare".to_string(),
+            WordsRarity::VeryCommon => "very common",
+            WordsRarity::Common => "common",
+            WordsRarity::Rare => "rare",
+            WordsRarity::VeryRare => "very rare",
         }
     }
 }
 
 // TODO maybe return &str?
 impl WithName for TestSize {
-    fn get_name(self, data: &Data) -> String {
+    fn get_name(self, data: &Data) -> &str {
         match self {
-            TestSize::VerySmall => "very small".to_string(),
-            TestSize::Small => "small".to_string(),
-            TestSize::Medium => "medium".to_string(),
-            TestSize::Large => "very large".to_string(),
+            TestSize::VerySmall => "very small",
+            TestSize::Small => "small",
+            TestSize::Medium => "medium",
+            TestSize::Large => "very large",
         }
     }
 }
@@ -1249,7 +1249,7 @@ fn get_settings_options<'a>(state: &'a State) -> Text<'a> {
     }
 }
 
-fn get_settings_options_text<'a, T: WithName + Copy + PartialEq>(options: &[T], active_option: T, data: &Data) -> Text<'a> {
+fn get_settings_options_text<'a, T: WithName + Copy + PartialEq>(options: &[T], active_option: T, data: &'a Data) -> Text<'a> {
     let mut lines = Vec::with_capacity(options.len());
     for option in options {
         let name = option.get_name(data);
