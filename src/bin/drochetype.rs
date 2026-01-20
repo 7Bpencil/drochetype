@@ -268,7 +268,6 @@ impl WithName for WordsRarity {
     }
 }
 
-// TODO maybe return &str?
 impl WithName for TestSize {
     fn get_name(self, data: &Data) -> &str {
         match self {
@@ -435,9 +434,9 @@ fn build_include_letters(data: &Data, settings: &Settings) -> Vec<IncludeLetter>
 }
 
 fn setup_logging() {
-    // strips logging in release builds if "release-level-off" feature is enabled
-    #[cfg(any(debug_assertions, not(feature = "release-level-off")))]
-    {
+    // strips logging in release builds
+    // don't forget to set spdlog-rs feature "release-level-off"
+    if cfg!(debug_assertions) {
         let path = "log.log";
         let file_sink = FileSink::builder().path(path).build_arc().expect("failed to build logger file sink");
         let new_logger = Logger::builder().sink(file_sink).build_arc().expect("failed to build logger");
