@@ -15,6 +15,7 @@ use ratatui::{
     widgets::{Block, Paragraph, Borders, Clear},
     DefaultTerminal, Frame,
 };
+use rayon::prelude::*;
 
 const MAX_LINE_LENGTH: usize = 45; // TODO add different widths: narrow, medium, wide
 const INCLUDE_LETTER_UI_MATRIX_WIDTH: usize = 7; // TODO maybe this should depend on localization (7 wont fit with some languages)?
@@ -1390,11 +1391,10 @@ fn load_data() -> Data {
     let data_serialized_compressed = include_bytes!("../../data_intermediate.bin");
     let data_serialized = miniz_oxide::inflate::decompress_to_vec(data_serialized_compressed).expect("failed to decompress");
     let data: Data_Intermediate = rmp_serde::decode::from_slice(&data_serialized).expect("failed to deserialize");
-
-    let mut natural_languages = Vec::with_capacity(data.natural_languages.len());
-    for language in data.natural_languages {
-        natural_languages.push(convert_intermediate_language_data(language));
-    }
+    let natural_languages = data.natural_languages
+        .into_par_iter()
+        .map(|language| convert_intermediate_language_data(language))
+        .collect();
 
     Data {
         numbers: data.numbers,
@@ -1405,13 +1405,10 @@ fn load_data() -> Data {
 }
 
 fn convert_intermediate_language_data(data: NaturalLanguageData_Intermediate) -> NaturalLanguageData {
-    let mut words = HashMap::with_capacity(data.words.len());
-    for (words_rarity, all_words) in data.words {
-        words.insert(words_rarity, NaturalLanguageWords {
-            per_letter: build_letter_to_words_dict(&all_words, &data.alphabet),
-            all_words,
-        });
-    }
+    let words = data.words
+        .into_par_iter()
+        .map(|(words_rarity, all_words)| (words_rarity, build_letter_to_words_dict(all_words, &data.alphabet)))
+        .collect();
 
     NaturalLanguageData {
         name: data.name,
@@ -1422,27 +1419,30 @@ fn convert_intermediate_language_data(data: NaturalLanguageData_Intermediate) ->
     }
 }
 
-fn build_letter_to_words_dict(words: &[String], alphabet: &Vec<char>) -> HashMap<char, Vec<usize>> {
-    let mut result = HashMap::new();
+fn build_letter_to_words_dict(all_words: Vec<String>, alphabet: &Vec<char>) -> NaturalLanguageWords {
+    let mut per_letter = HashMap::new();
 
     for letter in alphabet {
-        result.insert(*letter, Vec::new());
+        per_letter.insert(*letter, Vec::new());
     }
 
     let mut included_letters = HashSet::new();
-    for (word_index, word) in words.iter().enumerate() {
+    for (word_index, word) in all_words.iter().enumerate() {
         included_letters.clear();
         for letter in word.chars() {
             // prevent including word multiple times if it has repeating characters
             if included_letters.contains(&letter) {
                 continue;
             }
-            if let Some(letter_words) = result.get_mut(&letter) {
+            if let Some(letter_words) = per_letter.get_mut(&letter) {
                 letter_words.push(word_index);
                 included_letters.insert(letter);
             }
         }
     }
 
-    result
+    NaturalLanguageWords {
+        all_words,
+        per_letter,
+    }
 }
