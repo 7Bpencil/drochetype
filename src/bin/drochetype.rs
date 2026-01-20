@@ -1,25 +1,18 @@
 // TODO finalize UI, serialize data from json and embed it into binary
+use common::*;
 use anyhow::Result;
-use serde::{
-    Deserialize, Serialize,
-    de::DeserializeOwned,
-};
 use std::{
     collections::{HashMap, HashSet},
-    path::Path,
-    time::{Instant, Duration},
+    time::Instant,
 };
 use spdlog::{prelude::*, sink::FileSink};
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use rand::prelude::SliceRandom;
 use ratatui::{
-    buffer::Buffer,
-    layout::{Rect, Constraint, Position, Size, Offset},
+    layout::{Rect, Position},
     style::{Stylize, Color, Style, Modifier},
-    symbols,
-    symbols::border,
     text::{Span, Line, Text},
-    widgets::{Block, Paragraph, Widget, Borders, Tabs, Clear},
+    widgets::{Block, Paragraph, Borders, Clear},
     DefaultTerminal, Frame,
 };
 
@@ -246,7 +239,6 @@ impl WithName for TestLanguage {
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-#[repr(usize)]
 enum NgramType {
     Letters,
     Bigrams,
@@ -265,16 +257,6 @@ impl WithName for NgramType {
     }
 }
 
-// TODO is repr(usize) still required?
-#[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
-#[repr(usize)]
-enum WordsRarity {
-    VeryCommon,
-    Common,
-    Rare,
-    VeryRare,
-}
-
 impl WithName for WordsRarity {
     fn get_name(self, data: &Data) -> String {
         match self {
@@ -284,15 +266,6 @@ impl WithName for WordsRarity {
             WordsRarity::VeryRare => "very rare".to_string(),
         }
     }
-}
-
-#[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
-#[repr(usize)]
-enum TestSize {
-    VerySmall,
-    Small,
-    Medium,
-    Large,
 }
 
 // TODO maybe return &str?
@@ -1414,109 +1387,38 @@ fn get_char_span<'a>(char_index: usize, goal_chars: &[char], input_chars: &[char
 }
 
 fn load_data() -> Data {
-    let root = Path::new("data");
-    let numbers = load_from_json_file::<Vec<char>>(&root.join("numbers.json"));
-    let symbols = load_from_json_file::<Vec<char>>(&root.join("symbols.json"));
-    let languages = load_from_json_file::<Vec<DataLanguage>>(&root.join("languages.json"));
-    let mut natural_languages = Vec::with_capacity(languages.len());
+    let data_serialized_compressed = include_bytes!("../../data_intermediate.bin");
+    let data_serialized = miniz_oxide::inflate::decompress_to_vec(data_serialized_compressed).expect("failed to decompress");
+    let data: Data_Intermediate = rmp_serde::decode::from_slice(&data_serialized).expect("failed to deserialize");
 
-    for language in languages {
-        let name = language.name;
-        let alphabet = load_from_json_file::<Vec<char>>(&root.join(language.alphabet));
-        let bigrams = load_from_json_file::<Vec<String>>(&root.join(language.bigrams));
-        let trigrams = load_from_json_file::<Vec<String>>(&root.join(language.trigrams));
-
-        let mut words_very_common = load_monkeytype_words(&root.join(language.words_very_common));
-        let mut words_common = load_monkeytype_words(&root.join(language.words_common));
-        let mut words_rare = load_monkeytype_words(&root.join(language.words_rare));
-        let mut words_very_rare = load_monkeytype_words(&root.join(language.words_very_rare));
-
-        remove_one_letter_words(&mut words_very_common);
-        remove_one_letter_words(&mut words_common);
-        remove_one_letter_words(&mut words_rare);
-        remove_one_letter_words(&mut words_very_rare);
-
-        let words = HashMap::from([
-            (WordsRarity::VeryCommon, NaturalLanguageWords {
-                per_letter: build_letter_to_words_dict(&words_very_common, &alphabet),
-                all_words: words_very_common,
-            }),
-            (WordsRarity::Common, NaturalLanguageWords {
-                per_letter: build_letter_to_words_dict(&words_common, &alphabet),
-                all_words: words_common,
-            }),
-            (WordsRarity::Rare, NaturalLanguageWords {
-                per_letter: build_letter_to_words_dict(&words_rare, &alphabet),
-                all_words: words_rare,
-            }),
-            (WordsRarity::VeryRare, NaturalLanguageWords {
-                per_letter: build_letter_to_words_dict(&words_very_rare, &alphabet),
-                all_words: words_very_rare,
-            }),
-        ]);
-
-        natural_languages.push(NaturalLanguageData {
-            name,
-            alphabet,
-            bigrams,
-            trigrams,
-            words,
-        });
+    let mut natural_languages = Vec::with_capacity(data.natural_languages.len());
+    for language in data.natural_languages {
+        natural_languages.push(convert_intermediate_language_data(language));
     }
 
     Data {
-        numbers,
-        symbols,
+        numbers: data.numbers,
+        symbols: data.symbols,
         natural_languages,
-        test_sizes: HashMap::from([
-            (TestSize::VerySmall, 1),
-            (TestSize::Small, 3),
-            (TestSize::Medium, 6),
-            (TestSize::Large, 12),
-        ])
+        test_sizes: data.test_sizes,
     }
 }
 
-#[derive(Deserialize, Debug)]
-struct DataLanguage {
-    name: String,
-    alphabet: String,
-    bigrams: String,
-    trigrams: String,
-    words_very_common: String,
-    words_common: String,
-    words_rare: String,
-    words_very_rare: String
-}
+fn convert_intermediate_language_data(data: NaturalLanguageData_Intermediate) -> NaturalLanguageData {
+    let mut words = HashMap::with_capacity(data.words.len());
+    for (words_rarity, all_words) in data.words {
+        words.insert(words_rarity, NaturalLanguageWords {
+            per_letter: build_letter_to_words_dict(&all_words, &data.alphabet),
+            all_words,
+        });
+    }
 
-fn load_from_json_file<T: DeserializeOwned>(path: &Path) -> T {
-    let bytes = std::fs::read(path).unwrap();
-    let data: T = serde_json::from_slice(&bytes).unwrap();
-    data
-}
-
-fn load_monkeytype_words(path: &Path) -> Vec<String> {
-    // some words have capital letters in them, I don't like it.
-    // so, just lower an entire file, its much faster than lowering each word separately
-    let text = std::fs::read_to_string(path).unwrap();
-    let text_lowercase = text.to_lowercase();
-    let data: DataMonkeytype = serde_json::from_str(&text_lowercase).unwrap();
-    data.words
-}
-
-#[derive(Deserialize, Debug)]
-struct DataMonkeytype {
-    words: Vec<String>
-}
-
-fn remove_one_letter_words(words: &mut Vec<String>) {
-    let mut i = 0;
-    while i < words.len() {
-        if words[i].chars().count() < 2 {
-            words.swap_remove(i);
-        } else {
-            i += 1;
-        }
+    NaturalLanguageData {
+        name: data.name,
+        alphabet: data.alphabet,
+        bigrams: data.bigrams,
+        trigrams: data.trigrams,
+        words,
     }
 }
 
