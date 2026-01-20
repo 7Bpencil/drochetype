@@ -435,12 +435,16 @@ fn build_include_letters(data: &Data, settings: &Settings) -> Vec<IncludeLetter>
     }
 }
 
-// TODO strip logging in release builds
 fn setup_logging() -> Result<()> {
-    let path = "log.log";
-    let file_sink = FileSink::builder().path(path).build_arc()?;
-    let new_logger = Logger::builder().sink(file_sink).build_arc()?;
-    spdlog::set_default_logger(new_logger);
+    // strips logging in release builds if "release-level-off" feature is enabled
+    #[cfg(any(debug_assertions, not(feature = "release-level-off")))]
+    {
+        let path = "log.log";
+        let file_sink = FileSink::builder().path(path).build_arc()?;
+        let new_logger = Logger::builder().sink(file_sink).build_arc()?;
+        spdlog::set_default_logger(new_logger);
+    }
+
     Ok(())
 }
 
