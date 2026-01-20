@@ -1,6 +1,5 @@
 // TODO finalize UI, serialize data from json and embed it into binary
 use common::*;
-use anyhow::Result;
 use std::{
     collections::{HashMap, HashSet},
     time::Instant,
@@ -435,28 +434,25 @@ fn build_include_letters(data: &Data, settings: &Settings) -> Vec<IncludeLetter>
     }
 }
 
-fn setup_logging() -> Result<()> {
+fn setup_logging() {
     // strips logging in release builds if "release-level-off" feature is enabled
     #[cfg(any(debug_assertions, not(feature = "release-level-off")))]
     {
         let path = "log.log";
-        let file_sink = FileSink::builder().path(path).build_arc()?;
-        let new_logger = Logger::builder().sink(file_sink).build_arc()?;
+        let file_sink = FileSink::builder().path(path).build_arc().expect("failed to build logger file sink");
+        let new_logger = Logger::builder().sink(file_sink).build_arc().expect("failed to build logger");
         spdlog::set_default_logger(new_logger);
     }
-
-    Ok(())
 }
 
-fn app(terminal: &mut DefaultTerminal, mut state: State) -> Result<()> {
+fn app(terminal: &mut DefaultTerminal, mut state: State) {
     loop {
-        update(&mut state)?;
+        update(&mut state);
         if state.exit {
             break
         }
-        terminal.draw(|frame| render(frame, &state))?;
+        terminal.draw(|frame| render(frame, &state)).expect("failed to draw frame");
     }
-    Ok(())
 }
 
 fn generate_new_test(data: &Data, settings: &Settings) -> Test {
@@ -878,12 +874,11 @@ fn generate_char_positions(lines: &Vec<Vec<String>>, total_length: usize) -> Vec
     char_positions
 }
 
-fn update(state: &mut State) -> Result<()> {
-    match event::read()? {
+fn update(state: &mut State) {
+    match event::read().expect("failed to read event") {
         Event::Key(key_event) if key_event.kind.is_press() => key_input(key_event, state),
         _ => {}
     }
-    Ok(())
 }
 
 fn key_input(key_event: KeyEvent, state: &mut State) {
