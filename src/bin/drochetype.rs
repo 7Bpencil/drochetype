@@ -1393,7 +1393,7 @@ fn load_data() -> Data {
     let data: Data_Intermediate = rmp_serde::decode::from_slice(&data_serialized).expect("failed to deserialize");
     let natural_languages = data.natural_languages
         .into_par_iter()
-        .map(|language| convert_intermediate_language_data(language))
+        .map(convert_intermediate_language_data)
         .collect();
 
     Data {
