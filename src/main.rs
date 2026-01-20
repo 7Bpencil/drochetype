@@ -1,3 +1,4 @@
+// TODO finalize UI, serialize data from json and embed it into binary
 use anyhow::Result;
 use serde::{
     Deserialize, Serialize,
@@ -264,6 +265,7 @@ impl WithName for NgramType {
     }
 }
 
+// TODO is repr(usize) still required?
 #[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
 #[repr(usize)]
 enum WordsRarity {
@@ -293,6 +295,7 @@ enum TestSize {
     Large,
 }
 
+// TODO maybe return &str?
 impl WithName for TestSize {
     fn get_name(self, data: &Data) -> String {
         match self {
@@ -458,6 +461,7 @@ fn build_include_letters(data: &Data, settings: &Settings) -> Vec<IncludeLetter>
     }
 }
 
+// TODO strip logging in release builds
 fn setup_logging() -> Result<()> {
     let path = "log.log";
     let file_sink = FileSink::builder().path(path).build_arc()?;
@@ -629,7 +633,6 @@ impl<'a> RandomWordSelector<'a> {
     }
 
     fn get_next_word(&self) -> String {
-        assert!(!self.words.is_empty());
         random_element(self.words).clone()
     }
 }
@@ -711,6 +714,7 @@ impl LetterTokens {
     }
 }
 
+// TODO optimize
 fn append_clone<T: Clone>(from: &Vec<T>, to: &mut Vec<T>) {
     for item in from {
         to.push(item.clone());
