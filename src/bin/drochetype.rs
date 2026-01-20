@@ -675,7 +675,7 @@ impl LetterTokens {
     }
 
     fn fill_tokens(&mut self, letter: char, target_tokens_count: usize, target_array: &mut Vec<String>) {
-        append_clone(&self.unique_tokens, target_array);
+        target_array.extend_from_slice(&self.unique_tokens);
         let diff = target_tokens_count - self.total_tokens_count;
         if diff > 0 {
             // make rare letters more common by adding letters themselves as tokens
@@ -685,13 +685,6 @@ impl LetterTokens {
                 target_array.push(letter_string.clone());
             }
         }
-    }
-}
-
-// TODO optimize
-fn append_clone<T: Clone>(from: &Vec<T>, to: &mut Vec<T>) {
-    for item in from {
-        to.push(item.clone());
     }
 }
 
@@ -801,7 +794,7 @@ impl LetterWordGenerator {
         let mut word_builder = Vec::with_capacity(word_length + 1);
         for _ in 0..word_length {
             if self.available_word_tokens_copy.is_empty() {
-                append_clone(&self.available_word_tokens, &mut self.available_word_tokens_copy);
+                self.available_word_tokens_copy.extend_from_slice(&self.available_word_tokens);
                 shuffle_vec(&mut self.available_word_tokens_copy);
             }
 
