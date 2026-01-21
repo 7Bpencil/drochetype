@@ -24,15 +24,15 @@ pub enum TestSize {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Data_Intermediate {
+pub struct Data {
     pub numbers: Vec<char>,
     pub symbols: Vec<char>,
-    pub natural_languages: Vec<NaturalLanguageData_Intermediate>,
+    pub natural_languages: Vec<NaturalLanguageData>,
     pub test_sizes: HashMap<TestSize, usize>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct NaturalLanguageData_Intermediate {
+pub struct NaturalLanguageData {
     pub name: String,
     pub alphabet: Vec<char>,
     pub bigrams: Vec<String>,

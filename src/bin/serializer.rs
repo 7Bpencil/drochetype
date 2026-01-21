@@ -30,12 +30,12 @@ fn main() {
     let data_serialized = rmp_serde::encode::to_vec(&data).expect("failed to serialize");
     let compression_level = 7; // tested every level, this one was the last that gave size improvements
     let data_serialized_compressed = miniz_oxide::deflate::compress_to_vec(&data_serialized, compression_level);
-    let output_path = "data_intermediate.bin";
+    let output_path = "data.bin";
     std::fs::write(output_path, data_serialized_compressed).expect("failed to write file");
     println!("serialized data into {}", output_path);
 }
 
-fn load_data() -> Data_Intermediate {
+fn load_data() -> Data {
     let root = Path::new("data");
     let numbers = load_from_json_file::<Vec<char>>(&root.join("numbers.json"));
     let symbols = load_from_json_file::<Vec<char>>(&root.join("symbols.json"));
@@ -65,7 +65,7 @@ fn load_data() -> Data_Intermediate {
             (WordsRarity::VeryRare, words_very_rare),
         ]);
 
-        natural_languages.push(NaturalLanguageData_Intermediate {
+        natural_languages.push(NaturalLanguageData {
             name,
             alphabet,
             bigrams,
@@ -74,7 +74,7 @@ fn load_data() -> Data_Intermediate {
         });
     }
 
-    Data_Intermediate {
+    Data {
         numbers,
         symbols,
         natural_languages,

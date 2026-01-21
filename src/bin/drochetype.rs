@@ -14,7 +14,6 @@ use ratatui::{
     widgets::{Block, Paragraph, Borders, Clear},
     DefaultTerminal, Frame,
 };
-use rayon::prelude::*;
 
 const MAX_LINE_LENGTH: usize = 45; // TODO add different widths: narrow, medium, wide
 const INCLUDE_LETTER_UI_MATRIX_WIDTH: usize = 7; // TODO maybe this should depend on localization (7 wont fit with some languages)?
@@ -132,26 +131,6 @@ struct State {
     test: Test,
     show_settings: bool,
     exit: bool,
-}
-
-struct Data {
-    numbers: Vec<char>,
-    symbols: Vec<char>,
-    natural_languages: Vec<NaturalLanguageData>,
-    test_sizes: HashMap<TestSize, usize>,
-}
-
-struct NaturalLanguageData {
-    name: String,
-    alphabet: Vec<char>,
-    bigrams: Vec<String>,
-    trigrams: Vec<String>,
-    words: HashMap<WordsRarity, NaturalLanguageWords>,
-}
-
-struct NaturalLanguageWords {
-    all_words: Vec<String>,
-    per_letter: HashMap<char, Vec<usize>>,
 }
 
 struct Settings {
@@ -312,6 +291,13 @@ fn main() {
     };
 
     ratatui::run(|terminal| app(terminal, state));
+}
+
+fn load_data() -> Data {
+    let data_serialized_compressed = include_bytes!("../../data.bin");
+    let data_serialized = miniz_oxide::inflate::decompress_to_vec(data_serialized_compressed).expect("failed to decompress");
+    let data: Data = rmp_serde::decode::from_slice(&data_serialized).expect("failed to deserialize");
+    data
 }
 
 fn get_default_settings(data: &Data) -> Settings {
@@ -488,8 +474,8 @@ fn generate_test_lines(data: &Data, settings: &Settings) -> (Vec<Vec<String>>, u
                 NgramType::Words => {
                     let words = &language_data.words[&settings.words_rarity];
                     match language_config.include_letter {
-                        IncludeLetter::All => RandomWordSelector::new(&words.all_words).generate_lines(lines_count),
-                        IncludeLetter::Specific(letter) => RandomWordSelectorIndexed::new(&words.all_words, &words.per_letter[&letter]).generate_lines(lines_count),
+                        IncludeLetter::All => RandomWordSelector::new(words).generate_lines(lines_count),
+                        IncludeLetter::Specific(letter) => RandomWordSelectorIndexed::new(words, letter).generate_lines(lines_count),
                     }
                 }
             }
@@ -618,11 +604,23 @@ impl<'a> TestGenerator for RandomWordSelector<'a> {
 
 struct RandomWordSelectorIndexed<'a> {
     all_words: &'a Vec<String>,
-    indexes: &'a Vec<usize>,
+    indexes: Vec<usize>,
 }
 
 impl<'a> RandomWordSelectorIndexed<'a> {
-    fn new(all_words: &'a Vec<String>, indexes: &'a Vec<usize>) -> RandomWordSelectorIndexed<'a> {
+    fn new(all_words: &'a Vec<String>, target_letter: char) -> RandomWordSelectorIndexed<'a> {
+        let mut indexes = Vec::new();
+
+        // get words that contain target letter
+        for (word_index, word) in all_words.iter().enumerate() {
+            for letter in word.chars() {
+                if letter == target_letter {
+                    indexes.push(word_index);
+                    break;
+                }
+            }
+        }
+
         RandomWordSelectorIndexed {
             all_words,
             indexes,
@@ -633,7 +631,7 @@ impl<'a> RandomWordSelectorIndexed<'a> {
         if self.indexes.is_empty() {
             "no words".to_string()
         } else {
-            self.all_words[*random_element(self.indexes)].clone()
+            self.all_words[*random_element(&self.indexes)].clone()
         }
     }
 }
@@ -1375,65 +1373,5 @@ fn get_char_span<'a>(char_index: usize, goal_chars: &[char], input_chars: &[char
         }
         let style = Style::default().fg(Color::Red);
         return Span::styled(char.to_string(), style);
-    }
-}
-
-fn load_data() -> Data {
-    let data_serialized_compressed = include_bytes!("../../data_intermediate.bin");
-    let data_serialized = miniz_oxide::inflate::decompress_to_vec(data_serialized_compressed).expect("failed to decompress");
-    let data: Data_Intermediate = rmp_serde::decode::from_slice(&data_serialized).expect("failed to deserialize");
-    let natural_languages = data.natural_languages
-        .into_par_iter()
-        .map(convert_intermediate_language_data)
-        .collect();
-
-    Data {
-        numbers: data.numbers,
-        symbols: data.symbols,
-        natural_languages,
-        test_sizes: data.test_sizes,
-    }
-}
-
-fn convert_intermediate_language_data(data: NaturalLanguageData_Intermediate) -> NaturalLanguageData {
-    let words = data.words
-        .into_par_iter()
-        .map(|(words_rarity, all_words)| (words_rarity, build_letter_to_words_dict(all_words, &data.alphabet)))
-        .collect();
-
-    NaturalLanguageData {
-        name: data.name,
-        alphabet: data.alphabet,
-        bigrams: data.bigrams,
-        trigrams: data.trigrams,
-        words,
-    }
-}
-
-fn build_letter_to_words_dict(all_words: Vec<String>, alphabet: &Vec<char>) -> NaturalLanguageWords {
-    let mut per_letter = HashMap::new();
-
-    for letter in alphabet {
-        per_letter.insert(*letter, Vec::new());
-    }
-
-    let mut included_letters = HashSet::new();
-    for (word_index, word) in all_words.iter().enumerate() {
-        included_letters.clear();
-        for letter in word.chars() {
-            // prevent including word multiple times if it has repeating characters
-            if included_letters.contains(&letter) {
-                continue;
-            }
-            if let Some(letter_words) = per_letter.get_mut(&letter) {
-                letter_words.push(word_index);
-                included_letters.insert(letter);
-            }
-        }
-    }
-
-    NaturalLanguageWords {
-        all_words,
-        per_letter,
     }
 }
