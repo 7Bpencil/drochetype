@@ -468,7 +468,7 @@ fn generate_test_lines(data: &Data, settings: &Settings) -> (Vec<Vec<String>>, u
             let language_data = &data.natural_languages[index];
             let language_config = &settings.natural_language_configs[index];
             match settings.ngram {
-                NgramType::Letters => LetterWordGenerator::new(language_config, &language_data.alphabet, &language_data.bigrams, &language_data.trigrams).generate_lines(lines_count),
+                NgramType::Letters => LetterWordGenerator::new(language_config, &language_data.bigrams, &language_data.trigrams).generate_lines(lines_count),
                 NgramType::Bigrams => RandomWordSelector::new(&language_data.bigrams).generate_lines(lines_count),
                 NgramType::Trigrams => RandomWordSelector::new(&language_data.trigrams).generate_lines(lines_count),
                 NgramType::Words => {
@@ -686,7 +686,7 @@ impl LetterTokens {
 }
 
 impl LetterWordGenerator {
-    fn new(language_config: &NaturalLanguageConfig, alphabet: &[char], bigrams: &[String], trigrams: &[String]) -> LetterWordGenerator {
+    fn new(language_config: &NaturalLanguageConfig, bigrams: &[String], trigrams: &[String]) -> LetterWordGenerator {
         let letters = &language_config.select_letters;
         if letters.is_empty() {
             return LetterWordGenerator {
