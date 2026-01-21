@@ -6,7 +6,7 @@ use std::{
 };
 
 #[derive(Serialize, Deserialize)]
-#[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
 pub enum WordsRarity {
     VeryCommon,
     Common,
@@ -15,7 +15,7 @@ pub enum WordsRarity {
 }
 
 #[derive(Serialize, Deserialize)]
-#[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
 pub enum TestSize {
     VerySmall,
     Small,

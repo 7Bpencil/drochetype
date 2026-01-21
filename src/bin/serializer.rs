@@ -8,7 +8,7 @@ use std::{
     path::Path,
 };
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct DataLanguage {
     name: String,
     alphabet: String,
@@ -20,7 +20,7 @@ struct DataLanguage {
     words_very_rare: String
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct DataMonkeytype {
     words: Vec<String>
 }
@@ -32,7 +32,6 @@ fn main() {
     let data_serialized_compressed = miniz_oxide::deflate::compress_to_vec(&data_serialized, compression_level);
     let output_path = "data.bin";
     std::fs::write(output_path, data_serialized_compressed).expect("failed to write file");
-    println!("serialized data into {}", output_path);
 }
 
 fn load_data() -> Data {

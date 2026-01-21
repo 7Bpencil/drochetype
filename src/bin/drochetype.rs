@@ -200,7 +200,7 @@ impl WithName for SettingsTab {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone)]
 enum TestLanguage {
     Numbers,
     Symbols,
@@ -217,7 +217,7 @@ impl WithName for TestLanguage {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone)]
 enum NgramType {
     Letters,
     Bigrams,
@@ -258,7 +258,7 @@ impl WithName for TestSize {
     }
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone)]
 enum IncludeLetter {
     All,
     Specific(char),
