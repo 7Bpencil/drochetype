@@ -2,6 +2,7 @@
 name = "drochetype"
 version = "0.1.0"
 edition = "2024"
+resolver = "2"
 
 [profile.release]
 codegen-units = 1
@@ -10,13 +11,15 @@ opt-level = 3
 
 [[bin]]
 name = "drochetype"
+path = "src/drochetype.rs"
 
 [[bin]]
 name = "serializer"
+path = "src/serializer.rs"
 
 [lib]
 name = "common"
-path = "src/common/lib.rs"
+path = "src/common.rs"
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }

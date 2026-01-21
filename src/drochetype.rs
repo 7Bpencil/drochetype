@@ -294,7 +294,7 @@ fn main() {
 }
 
 fn load_data() -> Data {
-    let data_serialized_compressed = include_bytes!("../../data.bin");
+    let data_serialized_compressed = include_bytes!("../data.bin");
     let data_serialized = miniz_oxide::inflate::decompress_to_vec(data_serialized_compressed).expect("failed to decompress");
     let data: Data = rmp_serde::decode::from_slice(&data_serialized).expect("failed to deserialize");
     data
@@ -842,7 +842,7 @@ fn generate_goal_chars(lines: &Vec<Vec<String>>, total_length: usize) -> Vec<cha
     goal_chars
 }
 
-fn generate_input_chars(lines: &Vec<Vec<String>>, total_length: usize) -> Vec<char>{
+fn generate_input_chars(lines: &Vec<Vec<String>>, total_length: usize) -> Vec<char> {
     Vec::with_capacity(total_length)
 }
 
