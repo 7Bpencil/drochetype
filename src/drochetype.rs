@@ -17,6 +17,36 @@ use ratatui::{
 
 const MAX_LINE_LENGTH: usize = 45; // TODO add different widths: narrow, medium, wide
 const INCLUDE_LETTER_UI_MATRIX_WIDTH: usize = 7; // TODO maybe this should depend on localization (7 wont fit with some languages)?
+const SELECT_LETTERS_UI_MATRIX_WIDTH: usize = 7; // TODO maybe this should depend on localization (7 wont fit with some languages)?
+
+struct Tab<T: PartialEq + Copy> {
+    value: T,
+    range: Vec<T>,
+    width: usize,
+}
+
+#[derive(PartialEq)]
+enum Direction {
+    Down,
+    Up,
+    Right,
+    Left,
+}
+
+impl<T: PartialEq + Copy> Tab<T> {
+    fn get_value_index(&self) -> usize {
+        get_index(self.value, &self.range)
+    }
+
+    fn move_direction(&mut self, direction: Direction) {
+        self.value = match direction {
+            Direction::Down => get_next_row(self.value, &self.range, self.width),
+            Direction::Up => get_previous_row(self.value, &self.range, self.width),
+            Direction::Right => get_next(self.value, &self.range),
+            Direction::Left => get_previous(self.value, &self.range),
+        }
+    }
+}
 
 fn get_index<T: PartialEq + Copy>(current_item: T, items: &[T]) -> usize {
     items.iter().position(|v| *v == current_item).expect("current item is not in items vec")
@@ -127,35 +157,25 @@ trait WithName {
 struct State {
     data: Data,
     settings: Settings,
-    ui: UI,
     test: Test,
     show_settings: bool,
     exit: bool,
 }
 
 struct Settings {
-    active_settings_tab: SettingsTab,
-    language: TestLanguage,
-    ngram: NgramType,
-    words_rarity: WordsRarity,
+    tab: Tab<SettingsTab>,
+    language: Tab<TestLanguage>,
+    ngram: Tab<NgramType>,
+    words_rarity: Tab<WordsRarity>,
     natural_language_configs: Vec<NaturalLanguageConfig>,
-    size: TestSize,
+    size: Tab<TestSize>,
 }
 
 struct NaturalLanguageConfig {
-    include_letter: IncludeLetter,
+    include_letter: Tab<IncludeLetter>,
     select_letters: HashSet<char>,
     select_letters_priority: Option<char>,
-    select_letters_pointer: char,
-}
-
-struct UI {
-    settings_tabs: Vec<SettingsTab>,
-    languages: Vec<TestLanguage>,
-    ngrams: Vec<NgramType>,
-    words_rarities: Vec<WordsRarity>,
-    include_letters: Vec<IncludeLetter>,
-    sizes: Vec<TestSize>,
+    select_letters_pointer: Tab<char>,
 }
 
 struct Test {
@@ -278,13 +298,11 @@ fn main() {
 
     let data = load_data();
     let settings = get_default_settings(&data);
-    let ui = get_default_ui(&data, &settings);
     let test = generate_new_test(&data, &settings);
 
     let state = State {
         data,
         settings,
-        ui,
         test,
         show_settings: false,
         exit: false,
@@ -301,31 +319,12 @@ fn load_data() -> Data {
 }
 
 fn get_default_settings(data: &Data) -> Settings {
-    let mut natural_language_configs = Vec::with_capacity(data.natural_languages.len());
-    for natural_language in &data.natural_languages {
-        natural_language_configs.push(get_default_natural_language_config(natural_language));
-    }
+    let default_settings_tab = SettingsTab::Language;
+    let default_language = TestLanguage::Natural(0);
+    let default_ngram = NgramType::Words;
+    let default_words_rarity = WordsRarity::Common;
+    let default_test_size = TestSize::Small;
 
-    Settings {
-        active_settings_tab: SettingsTab::Language,
-        language: TestLanguage::Natural(0),
-        ngram: NgramType::Words,
-        words_rarity: WordsRarity::Common,
-        natural_language_configs,
-        size: TestSize::Small,
-    }
-}
-
-fn get_default_natural_language_config(natural_language: &NaturalLanguageData) -> NaturalLanguageConfig {
-    NaturalLanguageConfig {
-        include_letter: IncludeLetter::All,
-        select_letters: HashSet::with_capacity(natural_language.alphabet.len()),
-        select_letters_priority: None,
-        select_letters_pointer: natural_language.alphabet[0],
-    }
-}
-
-fn get_default_ui(data: &Data, settings: &Settings) -> UI {
     let natural_languages_count = data.natural_languages.len();
 
     let mut languages = Vec::with_capacity(2 + natural_languages_count);
@@ -335,38 +334,90 @@ fn get_default_ui(data: &Data, settings: &Settings) -> UI {
         languages.push(TestLanguage::Natural(i));
     }
 
-    UI {
-        settings_tabs: build_settings_tabs(settings),
-        languages,
-        ngrams: vec![
-            NgramType::Letters,
-            NgramType::Bigrams,
-            NgramType::Trigrams,
-            NgramType::Words
-        ],
-        words_rarities: vec![
-            WordsRarity::VeryCommon,
-            WordsRarity::Common,
-            WordsRarity::Rare,
-            WordsRarity::VeryRare
-        ],
-        include_letters: build_include_letters(data, settings),
-        sizes: vec![
-            TestSize::VerySmall,
-            TestSize::Small,
-            TestSize::Medium,
-            TestSize::Large
-        ],
+    let mut natural_language_configs = Vec::with_capacity(natural_languages_count);
+    for natural_language in &data.natural_languages {
+        natural_language_configs.push(get_default_natural_language_config(natural_language));
+    }
+
+    Settings {
+        tab: Tab {
+            value: default_settings_tab,
+            range: build_settings_tabs(default_language, default_ngram),
+            width: 1,
+        },
+        language: Tab {
+            value: default_language,
+            range: languages,
+            width: 1,
+        },
+        ngram: Tab {
+            value: default_ngram,
+            range: vec![
+                NgramType::Letters,
+                NgramType::Bigrams,
+                NgramType::Trigrams,
+                NgramType::Words
+            ],
+            width: 1,
+        },
+        words_rarity: Tab {
+            value: default_words_rarity,
+            range: vec![
+                WordsRarity::VeryCommon,
+                WordsRarity::Common,
+                WordsRarity::Rare,
+                WordsRarity::VeryRare
+            ],
+            width: 1,
+        },
+        natural_language_configs,
+        size: Tab {
+            value: default_test_size,
+            range: vec![
+                TestSize::VerySmall,
+                TestSize::Small,
+                TestSize::Medium,
+                TestSize::Large
+            ],
+            width: 1,
+        }
     }
 }
 
-fn rebuild_ui(ui: &mut UI, data: &Data, settings: &Settings) {
-    ui.settings_tabs = build_settings_tabs(settings);
-    ui.include_letters = build_include_letters(data, settings);
+fn get_default_natural_language_config(natural_language: &NaturalLanguageData) -> NaturalLanguageConfig {
+    NaturalLanguageConfig {
+        include_letter: Tab {
+            value: IncludeLetter::All,
+            range: build_include_letter_range(natural_language),
+            width: INCLUDE_LETTER_UI_MATRIX_WIDTH,
+        },
+        select_letters: HashSet::with_capacity(natural_language.alphabet.len()),
+        select_letters_priority: None,
+        select_letters_pointer: Tab {
+            value: natural_language.alphabet[0],
+            range: natural_language.alphabet.clone(),
+            width: SELECT_LETTERS_UI_MATRIX_WIDTH,
+        },
+    }
 }
 
-fn build_settings_tabs(settings: &Settings) -> Vec<SettingsTab> {
-    match settings.language {
+fn build_include_letter_range(language_data: &NaturalLanguageData) -> Vec<IncludeLetter> {
+    let mut result = Vec::with_capacity(language_data.alphabet.len() + 1);
+
+    result.push(IncludeLetter::All);
+    for letter in &language_data.alphabet {
+        result.push(IncludeLetter::Specific(*letter));
+    }
+
+    result
+}
+
+fn rebuild_settings(settings: &mut Settings) {
+    settings.tab.range = build_settings_tabs(settings.language.value, settings.ngram.value);
+}
+
+fn build_settings_tabs(language: TestLanguage, ngram: NgramType) -> Vec<SettingsTab> {
+    match language {
         TestLanguage::Numbers => vec![
             SettingsTab::Language,
             SettingsTab::Size
@@ -375,7 +426,7 @@ fn build_settings_tabs(settings: &Settings) -> Vec<SettingsTab> {
             SettingsTab::Language,
             SettingsTab::Size
         ],
-        TestLanguage::Natural(_) => match settings.ngram {
+        TestLanguage::Natural(_) => match ngram {
             NgramType::Letters => vec![
                 SettingsTab::Language,
                 SettingsTab::NgramType,
@@ -400,22 +451,6 @@ fn build_settings_tabs(settings: &Settings) -> Vec<SettingsTab> {
                 SettingsTab::Size
             ],
         },
-    }
-}
-
-fn build_include_letters(data: &Data, settings: &Settings) -> Vec<IncludeLetter> {
-    if let TestLanguage::Natural(index) = settings.language {
-        let language_data = &data.natural_languages[index];
-        let mut result = Vec::with_capacity(language_data.alphabet.len() + 1);
-
-        result.push(IncludeLetter::All);
-        for letter in &language_data.alphabet {
-            result.push(IncludeLetter::Specific(*letter));
-        }
-
-        result
-    } else {
-        Vec::new()
     }
 }
 
@@ -460,20 +495,20 @@ fn generate_new_test(data: &Data, settings: &Settings) -> Test {
 }
 
 fn generate_test_lines(data: &Data, settings: &Settings) -> (Vec<Vec<String>>, usize) {
-    let lines_count = data.test_sizes[&settings.size];
-    match settings.language {
+    let lines_count = data.test_sizes[&settings.size.value];
+    match settings.language.value {
         TestLanguage::Numbers => RandomWordGenerator::new(&data.numbers, 6).generate_lines(lines_count),
         TestLanguage::Symbols => RandomWordGenerator::new(&data.symbols, 4).generate_lines(lines_count),
         TestLanguage::Natural(index) => {
             let language_data = &data.natural_languages[index];
             let language_config = &settings.natural_language_configs[index];
-            match settings.ngram {
+            match settings.ngram.value {
                 NgramType::Letters => LetterWordGenerator::new(language_config, &language_data.bigrams, &language_data.trigrams).generate_lines(lines_count),
                 NgramType::Bigrams => RandomWordSelector::new(&language_data.bigrams).generate_lines(lines_count),
                 NgramType::Trigrams => RandomWordSelector::new(&language_data.trigrams).generate_lines(lines_count),
                 NgramType::Words => {
-                    let words = &language_data.words[&settings.words_rarity];
-                    match language_config.include_letter {
+                    let words = &language_data.words[&settings.words_rarity.value];
+                    match language_config.include_letter.value {
                         IncludeLetter::All => RandomWordSelector::new(words).generate_lines(lines_count),
                         IncludeLetter::Specific(letter) => RandomWordSelectorIndexed::new(words, letter).generate_lines(lines_count),
                     }
@@ -874,162 +909,124 @@ fn update(state: &mut State) {
 fn key_input(key_event: KeyEvent, state: &mut State) {
     info!("input code: {}, modifiers: {}", key_event.code, key_event.modifiers);
 
-    if key_event.modifiers.contains(KeyModifiers::CONTROL) && key_event.code.is_char('c') {
-        state.exit = true;
-        return;
-    };
-
-    if !state.show_settings && key_event.code == KeyCode::Enter {
-        state.show_settings = true;
-        return;
-    }
-
     match key_event.code {
-        KeyCode::Esc => {
-            if state.show_settings {
-                state.show_settings = false;
+        KeyCode::Char('c') => {
+            if key_event.modifiers.contains(KeyModifiers::CONTROL) {
+                state.exit = true;
+                return;
+            };
+        }
+        KeyCode::Enter => {
+            if !state.show_settings {
+                state.show_settings = true;
                 return;
             }
-        }
-        KeyCode::Enter => if state.show_settings {
-            if state.settings.active_settings_tab == SettingsTab::SelectLetters {
-                if let TestLanguage::Natural(index) = state.settings.language {
-                    let language_config = &mut state.settings.natural_language_configs[index];
-
-                    // cycle pointer letter state:
-                    if !language_config.select_letters.contains(&language_config.select_letters_pointer) {
-                        // not included -> priority
-                        language_config.select_letters.insert(language_config.select_letters_pointer);
-                        language_config.select_letters_priority = Some(language_config.select_letters_pointer);
-                    }  else if let Some(priority) = language_config.select_letters_priority && language_config.select_letters_pointer == priority {
-                        // priority -> included
-                        language_config.select_letters_priority = None;
-                    } else {
-                        // included -> not included
-                        language_config.select_letters.remove(&language_config.select_letters_pointer);
-                    }
-
-                    rebuild_ui(&mut state.ui, &state.data, &state.settings);
-                    start_new_test(state);
-                }
-            } else {
-                state.show_settings = !state.show_settings;
-            }
-            return;
         },
         KeyCode::Tab => {
-            state.settings.active_settings_tab = get_next(state.settings.active_settings_tab, &state.ui.settings_tabs);
+            state.settings.tab.move_direction(Direction::Right);
             state.show_settings = true;
-            return;
         },
         KeyCode::BackTab => {
-            state.settings.active_settings_tab = get_previous(state.settings.active_settings_tab, &state.ui.settings_tabs);
+            state.settings.tab.move_direction(Direction::Left);
             state.show_settings = true;
-            return;
-        },
-        KeyCode::Down => if state.show_settings {
-            match state.settings.active_settings_tab {
-                SettingsTab::Language => state.settings.language = get_next(state.settings.language, &state.ui.languages),
-                SettingsTab::NgramType => state.settings.ngram = get_next(state.settings.ngram, &state.ui.ngrams),
-                SettingsTab::WordsRarity => state.settings.words_rarity = get_next(state.settings.words_rarity, &state.ui.words_rarities),
-                SettingsTab::IncludeLetter => {
-                    if let TestLanguage::Natural(index) = state.settings.language {
-                        let language_config = &mut state.settings.natural_language_configs[index];
-                        language_config.include_letter = get_next_row(language_config.include_letter, &state.ui.include_letters, INCLUDE_LETTER_UI_MATRIX_WIDTH);
-                    }
-                }
-                SettingsTab::SelectLetters => {
-                    if let TestLanguage::Natural(index) = state.settings.language {
-                        let language_data = &state.data.natural_languages[index];
-                        let language_config = &mut state.settings.natural_language_configs[index];
-                        language_config.select_letters_pointer = get_next_row(language_config.select_letters_pointer, &language_data.alphabet, INCLUDE_LETTER_UI_MATRIX_WIDTH);
-                    }
-                }
-                SettingsTab::Size => state.settings.size = get_next(state.settings.size, &state.ui.sizes),
-            };
-            // TODO full ui rebuild is not required in some cases
-            rebuild_ui(&mut state.ui, &state.data, &state.settings);
-            start_new_test(state);
-            return;
-        },
-        KeyCode::Up => if state.show_settings {
-            match state.settings.active_settings_tab {
-                SettingsTab::Language => state.settings.language = get_previous(state.settings.language, &state.ui.languages),
-                SettingsTab::NgramType => state.settings.ngram = get_previous(state.settings.ngram, &state.ui.ngrams),
-                SettingsTab::WordsRarity => state.settings.words_rarity = get_previous(state.settings.words_rarity, &state.ui.words_rarities),
-                SettingsTab::IncludeLetter => {
-                    if let TestLanguage::Natural(index) = state.settings.language {
-                        let language_config = &mut state.settings.natural_language_configs[index];
-                        language_config.include_letter = get_previous_row(language_config.include_letter, &state.ui.include_letters, INCLUDE_LETTER_UI_MATRIX_WIDTH);
-                    }
-                }
-                SettingsTab::SelectLetters => {
-                    if let TestLanguage::Natural(index) = state.settings.language {
-                        let language_data = &state.data.natural_languages[index];
-                        let language_config = &mut state.settings.natural_language_configs[index];
-                        language_config.select_letters_pointer = get_previous_row(language_config.select_letters_pointer, &language_data.alphabet, INCLUDE_LETTER_UI_MATRIX_WIDTH);
-                    }
-                }
-                SettingsTab::Size => state.settings.size = get_previous(state.settings.size, &state.ui.sizes),
-            };
-            rebuild_ui(&mut state.ui, &state.data, &state.settings);
-            start_new_test(state);
-            return;
-        },
-        KeyCode::Right => if state.show_settings {
-            match state.settings.active_settings_tab {
-                SettingsTab::IncludeLetter => {
-                    if let TestLanguage::Natural(index) = state.settings.language {
-                        let language_config = &mut state.settings.natural_language_configs[index];
-                        language_config.include_letter = get_next(language_config.include_letter, &state.ui.include_letters);
-
-                        rebuild_ui(&mut state.ui, &state.data, &state.settings);
-                        start_new_test(state);
-                    }
-                },
-                SettingsTab::SelectLetters => {
-                    if let TestLanguage::Natural(index) = state.settings.language {
-                        let language_data = &state.data.natural_languages[index];
-                        let language_config = &mut state.settings.natural_language_configs[index];
-                        language_config.select_letters_pointer = get_next(language_config.select_letters_pointer, &language_data.alphabet);
-                    }
-                }
-                _ => {}
-            };
-            return;
-        },
-        KeyCode::Left => if state.show_settings {
-            match state.settings.active_settings_tab {
-                SettingsTab::IncludeLetter => {
-                    if let TestLanguage::Natural(index) = state.settings.language {
-                        let language_config = &mut state.settings.natural_language_configs[index];
-                        language_config.include_letter = get_previous(language_config.include_letter, &state.ui.include_letters);
-
-                        rebuild_ui(&mut state.ui, &state.data, &state.settings);
-                        start_new_test(state);
-                    }
-                },
-                SettingsTab::SelectLetters => {
-                    if let TestLanguage::Natural(index) = state.settings.language {
-                        let language_data = &state.data.natural_languages[index];
-                        let language_config = &mut state.settings.natural_language_configs[index];
-                        language_config.select_letters_pointer = get_previous(language_config.select_letters_pointer, &language_data.alphabet);
-                    }
-                }
-                _ => {}
-            };
-            return;
         },
         _ => {}
     }
 
     if state.show_settings {
-        return;
+        key_input_settings(key_event, state);
+    } else {
+        key_input_test(key_event, state);
     }
+}
 
+fn key_input_settings(key_event: KeyEvent, state: &mut State) {
+    match key_event.code {
+        KeyCode::Esc => {
+            state.show_settings = false;
+        }
+        KeyCode::Enter => {
+            if state.settings.tab.value == SettingsTab::SelectLetters {
+                if let TestLanguage::Natural(index) = state.settings.language.value {
+                    let language_config = &mut state.settings.natural_language_configs[index];
+
+                    // cycle pointer letter state:
+                    if !language_config.select_letters.contains(&language_config.select_letters_pointer.value) {
+                        // not included -> priority
+                        language_config.select_letters.insert(language_config.select_letters_pointer.value);
+                        language_config.select_letters_priority = Some(language_config.select_letters_pointer.value);
+                    }  else if let Some(priority) = language_config.select_letters_priority && language_config.select_letters_pointer.value == priority {
+                        // priority -> included
+                        language_config.select_letters_priority = None;
+                    } else {
+                        // included -> not included
+                        language_config.select_letters.remove(&language_config.select_letters_pointer.value);
+                    }
+
+                    start_new_test(state);
+                }
+            } else {
+                state.show_settings = !state.show_settings;
+            }
+        },
+        KeyCode::Down => {
+            move_inside_settings_tab(state, Direction::Down);
+        },
+        KeyCode::Up => {
+            move_inside_settings_tab(state, Direction::Up);
+        },
+        KeyCode::Right => {
+            move_inside_settings_tab(state, Direction::Right);
+        },
+        KeyCode::Left => {
+            move_inside_settings_tab(state, Direction::Left);
+        },
+        _ => {}
+    };
+}
+
+fn move_inside_settings_tab(state: &mut State, input_direction: Direction) {
+    match state.settings.tab.value {
+        SettingsTab::Language => {
+            state.settings.language.move_direction(input_direction);
+            rebuild_settings(&mut state.settings);
+            start_new_test(state);
+        },
+        SettingsTab::NgramType => {
+            state.settings.ngram.move_direction(input_direction);
+            rebuild_settings(&mut state.settings);
+            start_new_test(state);
+        },
+        SettingsTab::WordsRarity => {
+            state.settings.words_rarity.move_direction(input_direction);
+            start_new_test(state);
+        },
+        SettingsTab::IncludeLetter => {
+            if let TestLanguage::Natural(index) = state.settings.language.value {
+                let language_config = &mut state.settings.natural_language_configs[index];
+                language_config.include_letter.move_direction(input_direction);
+                start_new_test(state);
+            }
+        },
+        SettingsTab::SelectLetters => {
+            if let TestLanguage::Natural(index) = state.settings.language.value {
+                let language_config = &mut state.settings.natural_language_configs[index];
+                language_config.select_letters_pointer.move_direction(input_direction);
+            }
+        },
+        SettingsTab::Size => {
+            state.settings.size.move_direction(input_direction);
+            start_new_test(state);
+        },
+    };
+}
+
+fn key_input_test(key_event: KeyEvent, state: &mut State) {
     match state.test.stage {
         TestStage::Waiting => match key_event.code {
-            KeyCode::Esc => start_new_test(state),
+            KeyCode::Esc => {
+                start_new_test(state);
+            },
             KeyCode::Char(key_char) => {
                 push_new_char(&mut state.test, key_char);
                 state.test.start_time = Instant::now();
@@ -1038,7 +1035,9 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
             _ => {}
         }
         TestStage::Running => match key_event.code {
-            KeyCode::Esc => reset_current_test(&mut state.test),
+            KeyCode::Esc => {
+                reset_current_test(&mut state.test);
+            },
             KeyCode::Backspace => {
                 if state.test.input_chars.len() > 1 {
                     state.test.input_chars.pop();
@@ -1058,8 +1057,12 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
             _ => {}
         }
         TestStage::Finished => match key_event.code {
-            KeyCode::Esc => reset_current_test(&mut state.test),
-            KeyCode::Char(' ') => start_new_test(state),
+            KeyCode::Esc => {
+                reset_current_test(&mut state.test);
+            },
+            KeyCode::Char(' ') => {
+                start_new_test(state);
+            },
             _ => {}
         }
     }
@@ -1088,7 +1091,10 @@ fn reset_current_test(test: &mut Test) {
 }
 
 fn render(frame: &mut Frame, state: &State) {
+    let data = &state.data;
+    let settings = &state.settings;
     let test = &state.test;
+
     let frame_area = frame.area();
 
     // draw background border
@@ -1109,7 +1115,7 @@ fn render(frame: &mut Frame, state: &State) {
     // TODO if stuff does not fit with max_text_height, then use text_height
     let text = generate_text_from_test(test);
     let text_height = text.height();
-    let max_text_height = *state.data.test_sizes.values().max().expect("no items in test_sizes array?");
+    let max_text_height = *data.test_sizes.values().max().expect("no items in test_sizes array?");
     let text_area = Rect::new(
         get_center(frame_area.width, MAX_LINE_LENGTH as u16),
         get_center(frame_area.height, max_text_height as u16),
@@ -1127,14 +1133,14 @@ fn render(frame: &mut Frame, state: &State) {
 
     // draw settings tabs
     let separator = " • ";
-    let active_settings_tab_index = get_index(state.settings.active_settings_tab, &state.ui.settings_tabs);
+    let active_settings_tab_index = settings.tab.get_value_index();
     let active_settings_tab_style = Style::default().add_modifier(Modifier::UNDERLINED);
-    let mut tab_names = Vec::with_capacity(state.ui.settings_tabs.len() * 2 + 1); // reserve space for tab names and separators
+    let mut tab_names = Vec::with_capacity(settings.tab.range.len() * 2 + 1); // reserve space for tab names and separators
 
     tab_names.push(Span::from(separator));
-    for settings_tab in &state.ui.settings_tabs {
-        let settings_tab_name = settings_tab.get_name(&state.data);
-        if *settings_tab == state.settings.active_settings_tab {
+    for settings_tab in &settings.tab.range {
+        let settings_tab_name = settings_tab.get_name(&data);
+        if *settings_tab == settings.tab.value {
             tab_names.push(Span::styled(settings_tab_name, active_settings_tab_style));
         } else {
             tab_names.push(Span::from(settings_tab_name));
@@ -1176,8 +1182,8 @@ fn render(frame: &mut Frame, state: &State) {
 
     // draw settings options
     if state.show_settings {
-        let text = get_settings_options(state);
-        let title_name = state.settings.active_settings_tab.get_name(&state.data);
+        let text = get_settings_options(settings, data);
+        let title_name = settings.tab.value.get_name(&data);
         let title = Line::styled(title_name, active_settings_tab_style);
         let text_area_width = title.width() + 4;
         let text_area_height = text.height() + 2;
@@ -1204,63 +1210,64 @@ fn get_tab_name_x(tab_index: usize, tab_names: &Vec<Span>) -> u16 {
     x as u16
 }
 
-fn get_settings_options<'a>(state: &'a State) -> Text<'a> {
-    match state.settings.active_settings_tab {
+fn get_settings_options<'a>(settings: &Settings, data: &'a Data) -> Text<'a> {
+    match settings.tab.value {
         SettingsTab::Language => {
-            get_settings_options_text(&state.ui.languages, state.settings.language, &state.data)
+            get_settings_options_text(&settings.language, &data)
         },
         SettingsTab::NgramType => {
-            get_settings_options_text(&state.ui.ngrams, state.settings.ngram, &state.data)
+            get_settings_options_text(&settings.ngram, &data)
         },
         SettingsTab::WordsRarity => {
-            get_settings_options_text(&state.ui.words_rarities, state.settings.words_rarity, &state.data)
+            get_settings_options_text(&settings.words_rarity, &data)
         },
         SettingsTab::IncludeLetter => {
-            if let TestLanguage::Natural(index) = state.settings.language {
-                let language_config = &state.settings.natural_language_configs[index];
-                generate_include_letter_ui_matrix(&state.ui.include_letters, language_config.include_letter)
+            if let TestLanguage::Natural(index) = settings.language.value {
+                let language_config = &settings.natural_language_configs[index];
+                generate_include_letter_ui_matrix(&language_config.include_letter)
             } else {
                 panic!("WTF")
             }
         },
         SettingsTab::SelectLetters => {
-            if let TestLanguage::Natural(index) = state.settings.language {
-                let language_data = &state.data.natural_languages[index];
-                let language_config = &state.settings.natural_language_configs[index];
-                generate_select_letters_ui_matrix(&language_data.alphabet, language_config)
+            if let TestLanguage::Natural(index) = settings.language.value {
+                let language_config = &settings.natural_language_configs[index];
+                generate_select_letters_ui_matrix(language_config)
             } else {
                 panic!("WTF")
             }
         },
         SettingsTab::Size => {
-            get_settings_options_text(&state.ui.sizes, state.settings.size, &state.data)
+            get_settings_options_text(&settings.size, &data)
         },
     }
 }
 
-fn get_settings_options_text<'a, T: WithName + Copy + PartialEq>(options: &[T], active_option: T, data: &'a Data) -> Text<'a> {
-    let mut lines = Vec::with_capacity(options.len());
-    for option in options {
+fn get_settings_options_text<'a, T: WithName + Copy + PartialEq>(options: &Tab<T>, data: &'a Data) -> Text<'a> {
+    let mut lines = Vec::with_capacity(options.range.len());
+    for option in &options.range {
         let name = option.get_name(data);
-        if *option == active_option {
-            lines.push(Line::styled(name, Style::default().fg(Color::Yellow)).centered());
+        let style = if *option == options.value {
+            Style::default().fg(Color::Yellow)
         } else {
-            lines.push(Line::styled(name, Style::default()).centered());
-        }
+            Style::default()
+        };
+        lines.push(Line::styled(name, style).centered());
     }
     Text::from(lines)
 }
 
-fn generate_include_letter_ui_matrix<'a>(include_letters: &[IncludeLetter], include_letter: IncludeLetter) -> Text<'a>{
-    let include_letter_index = get_index(include_letter, include_letters);
-    let lines_count = include_letters.len().div_ceil(INCLUDE_LETTER_UI_MATRIX_WIDTH);
+fn generate_include_letter_ui_matrix<'a>(include_letters: &Tab<IncludeLetter>) -> Text<'a>{
+    let include_letter_index = include_letters.get_value_index();
+    let lines_count = include_letters.range.len().div_ceil(include_letters.width);
+
     let mut lines = Vec::with_capacity(lines_count);
     let mut letter_index = 0;
     for _ in 0..lines_count {
-        let mut spans = Vec::with_capacity(INCLUDE_LETTER_UI_MATRIX_WIDTH * 2 - 1);
-        for i in 0..INCLUDE_LETTER_UI_MATRIX_WIDTH {
-            let letter_name = if letter_index < include_letters.len() {
-                include_letters[letter_index].get_name()
+        let mut spans = Vec::with_capacity(include_letters.width * 2 - 1);
+        for i in 0..include_letters.width {
+            let letter_name = if letter_index < include_letters.range.len() {
+                include_letters.range[letter_index].get_name()
             } else {
                 ' '
             };
@@ -1274,7 +1281,7 @@ fn generate_include_letter_ui_matrix<'a>(include_letters: &[IncludeLetter], incl
             spans.push(Span::styled(letter_name.to_string(), letter_style));
             letter_index += 1;
 
-            if i < INCLUDE_LETTER_UI_MATRIX_WIDTH - 1 {
+            if i < include_letters.width - 1 {
                 spans.push(Span::from(' '.to_string()));
             }
         }
@@ -1286,16 +1293,19 @@ fn generate_include_letter_ui_matrix<'a>(include_letters: &[IncludeLetter], incl
     Text::from(lines)
 }
 
-fn generate_select_letters_ui_matrix<'a>(alphabet: &[char], language_config: &NaturalLanguageConfig) -> Text<'a> {
-    let select_letters_pointer_index = get_index(language_config.select_letters_pointer, alphabet);
-    let lines_count = alphabet.len().div_ceil(INCLUDE_LETTER_UI_MATRIX_WIDTH);
+fn generate_select_letters_ui_matrix<'a>(language_config: &NaturalLanguageConfig) -> Text<'a> {
+    let available_letters = &language_config.select_letters_pointer.range;
+    let matrix_width = language_config.select_letters_pointer.width;
+    let select_letters_pointer_index = language_config.select_letters_pointer.get_value_index();
+    let lines_count = available_letters.len().div_ceil(matrix_width);
+
     let mut lines = Vec::with_capacity(lines_count);
     let mut letter_index = 0;
     for _ in 0..lines_count {
-        let mut spans = Vec::with_capacity(INCLUDE_LETTER_UI_MATRIX_WIDTH * 2 - 1);
-        for i in 0..INCLUDE_LETTER_UI_MATRIX_WIDTH {
-            let (letter_name, letter_color) = if letter_index < alphabet.len() {
-                let letter = alphabet[letter_index];
+        let mut spans = Vec::with_capacity(matrix_width * 2 - 1);
+        for i in 0..matrix_width {
+            let (letter_name, letter_color) = if letter_index < available_letters.len() {
+                let letter = available_letters[letter_index];
                 let color = if !language_config.select_letters.contains(&letter) {
                     Color::Reset
                 } else if let Some(priority) = language_config.select_letters_priority && letter == priority {
@@ -1320,7 +1330,7 @@ fn generate_select_letters_ui_matrix<'a>(alphabet: &[char], language_config: &Na
             spans.push(Span::styled(letter_name.to_string(), letter_style));
             letter_index += 1;
 
-            if i < INCLUDE_LETTER_UI_MATRIX_WIDTH - 1 {
+            if i < matrix_width - 1 {
                 spans.push(Span::from(' '.to_string()));
             }
         }
