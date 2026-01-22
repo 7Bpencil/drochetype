@@ -1,4 +1,3 @@
-// TODO finalize UI, serialize data from json and embed it into binary
 use common::*;
 use std::{
     collections::{HashMap, HashSet},
@@ -15,9 +14,9 @@ use ratatui::{
     DefaultTerminal, Frame,
 };
 
-const MAX_LINE_LENGTH: usize = 45; // TODO add different widths: narrow, medium, wide
-const INCLUDE_LETTER_UI_MATRIX_WIDTH: usize = 7; // TODO maybe this should depend on localization (7 wont fit with some languages)?
-const SELECT_LETTERS_UI_MATRIX_WIDTH: usize = 7; // TODO maybe this should depend on localization (7 wont fit with some languages)?
+const MAX_LINE_LENGTH: usize = 70;
+const INCLUDE_LETTER_UI_MATRIX_WIDTH: usize = 7;
+const SELECT_LETTERS_UI_MATRIX_WIDTH: usize = 7;
 
 struct Tab<T: PartialEq + Copy> {
     value: T,
@@ -36,6 +35,13 @@ enum Direction {
 impl<T: PartialEq + Copy> Tab<T> {
     fn get_value_index(&self) -> usize {
         get_index(self.value, &self.range)
+    }
+
+    fn get_value_column_row(&self) -> (usize, usize) {
+        let index = get_index(self.value, &self.range);
+        let column = column_from_index(index, self.width);
+        let row = row_from_index(index, self.width);
+        (column, row)
     }
 
     fn move_direction(&mut self, direction: Direction) {
@@ -273,7 +279,7 @@ impl WithName for TestSize {
             TestSize::VerySmall => "very small",
             TestSize::Small => "small",
             TestSize::Medium => "medium",
-            TestSize::Large => "very large",
+            TestSize::Large => "large",
         }
     }
 }
@@ -1095,32 +1101,28 @@ fn render(frame: &mut Frame, state: &State) {
     let settings = &state.settings;
     let test = &state.test;
 
-    let frame_area = frame.area();
-
-    // draw background border
-    let title_line = Line::from("drochetype");
-    let test_stage_line = match test.stage {
-        TestStage::Waiting => Line::from("waiting"),
-        TestStage::Running => Line::from("running").fg(Color::Green),
-        TestStage::Finished => Line::from("finished").fg(Color::Yellow),
-    };
-    let block = Block::default()
-        .title_top(title_line.centered())
-        .title_bottom(test_stage_line)
-        .borders(Borders::ALL);
-
-    frame.render_widget(block, frame_area);
-
     // draw main text
-    // TODO if stuff does not fit with max_text_height, then use text_height
+    let total_area = {
+        let frame_area = frame.area();
+        // expanded settings tab adds 2 columns to the left, so balance it with 2 columns on the right
+        let total_area_width = MAX_LINE_LENGTH + 4;
+        // we use max_text_height, so changing test size doesn't shift entire ui,
+        // plus add 2 lines for settings and 2 lines for result
+        let max_text_height = *data.test_sizes.values().max().expect("no items in test_sizes array?");
+        let total_area_height = max_text_height + 4;
+        Rect::new(
+            get_center(frame_area.width, total_area_width as u16),
+            get_center(frame_area.height, total_area_height as u16),
+            total_area_width as u16,
+            total_area_height as u16,
+        )
+    };
     let text = generate_text_from_test(test);
-    let text_height = text.height();
-    let max_text_height = *data.test_sizes.values().max().expect("no items in test_sizes array?");
     let text_area = Rect::new(
-        get_center(frame_area.width, MAX_LINE_LENGTH as u16),
-        get_center(frame_area.height, max_text_height as u16),
+        total_area.x + 2,
+        total_area.y + 2,
         MAX_LINE_LENGTH as u16,
-        max_text_height as u16
+        text.height() as u16
     );
     frame.render_widget(text, text_area);
 
@@ -1135,24 +1137,26 @@ fn render(frame: &mut Frame, state: &State) {
     let separator = " • ";
     let active_settings_tab_index = settings.tab.get_value_index();
     let active_settings_tab_style = Style::default().add_modifier(Modifier::UNDERLINED);
-    let mut tab_names = Vec::with_capacity(settings.tab.range.len() * 2 + 1); // reserve space for tab names and separators
+    let mut tab_names = Vec::with_capacity(settings.tab.range.len() * 2 - 1); // reserve space for tab names and separators
 
-    tab_names.push(Span::from(separator));
-    for settings_tab in &settings.tab.range {
+    for (i, settings_tab) in settings.tab.range.iter().enumerate() {
         let settings_tab_name = settings_tab.get_name(&data);
-        if *settings_tab == settings.tab.value {
-            tab_names.push(Span::styled(settings_tab_name, active_settings_tab_style));
+        let settings_tab_style = if *settings_tab == settings.tab.value {
+            active_settings_tab_style
         } else {
-            tab_names.push(Span::from(settings_tab_name));
+            Style::default()
+        };
+
+        tab_names.push(Span::styled(settings_tab_name, settings_tab_style));
+        if i < settings.tab.range.len() - 1 {
+            tab_names.push(Span::from(separator));
         }
-        tab_names.push(Span::from(separator));
     }
 
     let active_tab_name_x_local = get_tab_name_x(active_settings_tab_index, &tab_names);
     let tabs = Line::from(tab_names);
-    let tabs_width = tabs.width() as u16;
-    let tabs_area = Rect::new(get_center(frame_area.width, tabs_width), text_area.y - 2, tabs_width, 1);
-    let active_tab_name_x = active_tab_name_x_local + tabs_area.x - 2;
+    let tabs_area = Rect::new(text_area.x, total_area.y, text_area.width, 1);
+    let active_tab_name_x = tabs_area.x + active_tab_name_x_local;
     frame.render_widget(tabs, tabs_area);
 
     // draw result line
@@ -1176,7 +1180,7 @@ fn render(frame: &mut Frame, state: &State) {
             Span::from(" time: "),
             Span::from(time_string).fg(Color::Yellow),
         ]);
-        let result_line_area = Rect::new(text_area.x, text_area.y + text_height as u16 + 1, frame_area.width, 1);
+        let result_line_area = Rect::new(text_area.x, text_area.bottom() + 1, text_area.width, 1);
         frame.render_widget(result_line, result_line_area);
     };
 
@@ -1185,21 +1189,26 @@ fn render(frame: &mut Frame, state: &State) {
         let text = get_settings_options(settings, data);
         let title_name = settings.tab.value.get_name(&data);
         let title = Line::styled(title_name, active_settings_tab_style);
-        let text_area_width = title.width() + 4;
-        let text_area_height = text.height() + 2;
-        let text_area = Rect::new(active_tab_name_x, tabs_area.y, text_area_width as u16, text_area_height as u16);
-        let paragraph = Paragraph::new(text).block(Block::default().borders(Borders::ALL).title_top(title.centered()));
+        let width = title.width() + 4;
+        let height = text.height() + 2;
+        let text_area = Rect::new(active_tab_name_x - 2, tabs_area.y, width as u16, height as u16);
+        let block = Block::default().borders(Borders::ALL).title_top(title.centered());
+        let paragraph = Paragraph::new(text).block(block).centered();
         frame.render_widget(Clear, text_area);
         frame.render_widget(paragraph, text_area);
     }
 }
 
 fn get_center(parent_size: u16, child_size: u16) -> u16 {
-    ((parent_size - child_size) as f64 / 2.0).floor() as u16
+    if child_size > parent_size {
+        0
+    } else {
+        (parent_size - child_size).div_ceil(2)
+    }
 }
 
 fn get_tab_name_x(tab_index: usize, tab_names: &Vec<Span>) -> u16 {
-    let real_index = tab_index * 2 + 1;
+    let real_index = tab_index * 2;
     let mut x: usize = 0;
     for (i, tab_name) in tab_names.iter().enumerate() {
         if i == real_index {
@@ -1252,7 +1261,7 @@ fn get_settings_options_text<'a, T: WithName + Copy + PartialEq>(options: &Tab<T
         } else {
             Style::default()
         };
-        lines.push(Line::styled(name, style).centered());
+        lines.push(Line::styled(name, style));
     }
     Text::from(lines)
 }
@@ -1279,14 +1288,14 @@ fn generate_include_letter_ui_matrix<'a>(include_letters: &Tab<IncludeLetter>) -
             };
 
             spans.push(Span::styled(letter_name.to_string(), letter_style));
-            letter_index += 1;
-
             if i < include_letters.width - 1 {
                 spans.push(Span::from(' '.to_string()));
             }
+
+            letter_index += 1;
         }
 
-        let line = Line::from(spans).centered();
+        let line = Line::from(spans);
         lines.push(line);
     }
 
@@ -1318,7 +1327,6 @@ fn generate_select_letters_ui_matrix<'a>(language_config: &NaturalLanguageConfig
                 (' ', Color::Reset)
             };
 
-            // TODO replace with cursor
             let letter_modifier = if letter_index == select_letters_pointer_index {
                 Modifier::UNDERLINED
             } else {
@@ -1328,14 +1336,14 @@ fn generate_select_letters_ui_matrix<'a>(language_config: &NaturalLanguageConfig
             let letter_style = Style::default().fg(letter_color).add_modifier(letter_modifier);
 
             spans.push(Span::styled(letter_name.to_string(), letter_style));
-            letter_index += 1;
-
             if i < matrix_width - 1 {
                 spans.push(Span::from(' '.to_string()));
             }
+
+            letter_index += 1;
         }
 
-        let line = Line::from(spans).centered();
+        let line = Line::from(spans);
         lines.push(line);
     }
 
