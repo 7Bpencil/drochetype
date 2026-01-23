@@ -14,7 +14,7 @@ The idea was to combine features I found useful from [Typing Practice (keybr.com
 - Numbers mode
 - Symbols mode
 - WPM/CPM, time and accuracy meters after each test
-- different test sizes: from one line up to full screen
+- different test sizes: from one line up to twelve
 
 ## Controls
 
@@ -23,6 +23,7 @@ The idea was to combine features I found useful from [Typing Practice (keybr.com
 - Backspace to fix mistakes
 - Enter to open and close settings group, Tab and Shift-Tab to switch settings group
 - Up, Down, Left, Right to switch settings
+- Ctrl-C to exit
 
 ## Adding More Languages
 
@@ -43,14 +44,14 @@ Requires [Rust toolchain](https://rust-lang.org/tools/install/)<br>
 cargo run --bin serializer --release && cargo build --bin drochetype --release
 ```
 
-1. Run serializer to convert jsons with language data into single compressed binary blob<br>
-2. Build Drochetype app itself<br>
+1. Runs serializer to convert jsons with language data into single compressed binary blob<br>
+2. Builds Drochetype app itself<br>
 3. Result will be inside ./target/release directory<br>
 
 ## Copywrite
 
 Drochetype<br>
-Copyright (C) 2025 Edward Starkov <https://github.com/7Bpencil><br>
+Copyright (C) 2025-2026 Edward Starkov <https://github.com/7Bpencil><br>
 Released under the GNU General Public License version 3:<br>
 
     This program is free software: you can redistribute it and/or modify
