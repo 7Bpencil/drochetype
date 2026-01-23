@@ -165,6 +165,7 @@ struct State {
     settings: Settings,
     test: Test,
     show_settings: bool,
+    show_help: bool,
     exit: bool,
 }
 
@@ -311,6 +312,7 @@ fn main() {
         settings,
         test,
         show_settings: false,
+        show_help: false,
         exit: false,
     };
 
@@ -922,6 +924,10 @@ fn key_input(key_event: KeyEvent, state: &mut State) {
                 return;
             };
         }
+        KeyCode::F(1) => {
+            state.show_help = !state.show_help;
+            return;
+        }
         KeyCode::Enter => {
             if !state.show_settings {
                 state.show_settings = true;
@@ -1101,9 +1107,10 @@ fn render(frame: &mut Frame, state: &State) {
     let settings = &state.settings;
     let test = &state.test;
 
+    let frame_area = frame.area();
+
     // draw main text
     let total_area = {
-        let frame_area = frame.area();
         // expanded settings tab adds 2 columns to the left, so balance it with 2 columns on the right
         let total_area_width = MAX_LINE_LENGTH + 4;
         // we use max_text_height, so changing test size doesn't shift entire ui,
@@ -1196,6 +1203,32 @@ fn render(frame: &mut Frame, state: &State) {
         let paragraph = Paragraph::new(text).block(block).centered();
         frame.render_widget(Clear, text_area);
         frame.render_widget(paragraph, text_area);
+    }
+
+    if state.show_help {
+        let lines = vec![
+            Line::from(vec!["[Space]".yellow(), " - Generate new test after completing last one".into()]),
+            Line::from(vec!["[ESC]".yellow(), " - Reset test, ".into(), "[ESC]".yellow(), " again to generate new test".into()]),
+            Line::from(vec!["[Backspace]".yellow(), " - Clear last letter".into()]),
+            Line::from(vec!["[Enter]".yellow(), " - Open and Close settings group".into()]),
+            Line::from(vec!["[Tab]".yellow(), ", ".into(), "[Shift-Tab]".yellow(), " - Switch settings group".into()]),
+            Line::from(vec!["[Up]".yellow(), ", ".into(), "[Down]".yellow(), ", ".into(), "[Left]".yellow(), ", ".into(), "[Right]".yellow(), " - Switch settings".into()]),
+            Line::from(vec!["[Ctrl-C]".yellow(), " - Exit".into()]),
+            Line::from(vec!["[F1]".yellow(), " - Hide Help".into()]),
+        ];
+        let text = Text::from(lines);
+        let width = text.width()  as u16;
+        let height = (text.height() + 1) as u16;
+        let text_area = Rect::new(1, frame_area.bottom() - height, width, height);
+        let title = Line::from("─Help");
+        let block = Block::default().borders(Borders::TOP).title_top(title);
+        let paragraph = Paragraph::new(text).block(block);
+        frame.render_widget(Clear, text_area);
+        frame.render_widget(paragraph, text_area);
+    } else {
+        let line = Line::from("[F1] - Show Help").dim();
+        let area = Rect::new(1, frame_area.bottom() - 1, line.width() as u16, 1);
+        frame.render_widget(line, area);
     }
 }
 

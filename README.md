@@ -16,15 +16,6 @@ The idea was to combine features I found useful from [Typing Practice (keybr.com
 - WPM/CPM, time and accuracy meters after each test
 - different test sizes: from one line up to twelve
 
-## Controls
-
-- Space to generate new test after completing last one
-- ESC to reset test, ESC again to generate new test
-- Backspace to fix mistakes
-- Enter to open and close settings group, Tab and Shift-Tab to switch settings group
-- Up, Down, Left, Right to switch settings
-- Ctrl-C to exit
-
 ## Adding More Languages
 
 Currently supported languages:<br>
