@@ -1162,7 +1162,7 @@ fn render(frame: &mut Frame, state: &State) {
 
     let active_tab_name_x_local = get_tab_name_x(active_settings_tab_index, &tab_names);
     let tabs = Line::from(tab_names);
-    let tabs_area = Rect::new(text_area.x, total_area.y, text_area.width, 1);
+    let tabs_area = Rect::new(text_area.x, total_area.y, tabs.width() as u16, 1);
     let active_tab_name_x = tabs_area.x + active_tab_name_x_local;
     frame.render_widget(tabs, tabs_area);
 
@@ -1178,16 +1178,12 @@ fn render(frame: &mut Frame, state: &State) {
         let wpm = cpm / 5.0;
         let wpm_string = wpm.floor().to_string();
         let result_line = Line::from(vec![
-            Span::from("acc: "),
-            Span::from(accuracy_string).fg(Color::Yellow),
-            Span::from(" wpm: "),
-            Span::from(wpm_string).fg(Color::Yellow),
-            Span::from(" cpm: "),
-            Span::from(cpm_string).fg(Color::Yellow),
-            Span::from(" time: "),
-            Span::from(time_string).fg(Color::Yellow),
+            "acc: ".into(), accuracy_string.yellow(),
+            " wpm: ".into(), wpm_string.yellow(),
+            " cpm: ".into(), cpm_string.yellow(),
+            " time: ".into(), time_string.yellow(),
         ]);
-        let result_line_area = Rect::new(text_area.x, text_area.bottom() + 1, text_area.width, 1);
+        let result_line_area = Rect::new(text_area.x, text_area.bottom() + 1, result_line.width() as u16, 1);
         frame.render_widget(result_line, result_line_area);
     };
 
