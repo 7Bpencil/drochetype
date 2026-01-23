@@ -1147,7 +1147,7 @@ fn render(frame: &mut Frame, state: &State) {
     let mut tab_names = Vec::with_capacity(settings.tab.range.len() * 2 - 1); // reserve space for tab names and separators
 
     for (i, settings_tab) in settings.tab.range.iter().enumerate() {
-        let settings_tab_name = settings_tab.get_name(&data);
+        let settings_tab_name = settings_tab.get_name(data);
         let settings_tab_style = if *settings_tab == settings.tab.value {
             active_settings_tab_style
         } else {
@@ -1194,7 +1194,7 @@ fn render(frame: &mut Frame, state: &State) {
     // draw settings options
     if state.show_settings {
         let text = get_settings_options(settings, data);
-        let title_name = settings.tab.value.get_name(&data);
+        let title_name = settings.tab.value.get_name(data);
         let title = Line::styled(title_name, active_settings_tab_style);
         let width = title.width() + 4;
         let height = text.height() + 2;
@@ -1255,13 +1255,13 @@ fn get_tab_name_x(tab_index: usize, tab_names: &Vec<Span>) -> u16 {
 fn get_settings_options<'a>(settings: &Settings, data: &'a Data) -> Text<'a> {
     match settings.tab.value {
         SettingsTab::Language => {
-            get_settings_options_text(&settings.language, &data)
+            get_settings_options_text(&settings.language, data)
         },
         SettingsTab::NgramType => {
-            get_settings_options_text(&settings.ngram, &data)
+            get_settings_options_text(&settings.ngram, data)
         },
         SettingsTab::WordsRarity => {
-            get_settings_options_text(&settings.words_rarity, &data)
+            get_settings_options_text(&settings.words_rarity, data)
         },
         SettingsTab::IncludeLetter => {
             if let TestLanguage::Natural(index) = settings.language.value {
@@ -1280,7 +1280,7 @@ fn get_settings_options<'a>(settings: &Settings, data: &'a Data) -> Text<'a> {
             }
         },
         SettingsTab::Size => {
-            get_settings_options_text(&settings.size, &data)
+            get_settings_options_text(&settings.size, data)
         },
     }
 }
