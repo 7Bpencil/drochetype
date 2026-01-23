@@ -1201,7 +1201,7 @@ fn render(frame: &mut Frame, state: &State) {
         let text_area = Rect::new(active_tab_name_x - 2, tabs_area.y, width as u16, height as u16);
         let block = Block::default().borders(Borders::ALL).title_top(title.centered());
         let paragraph = Paragraph::new(text).block(block).centered();
-        frame.render_widget(Clear, text_area);
+        clear_area(frame, text_area);
         frame.render_widget(paragraph, text_area);
     }
 
@@ -1219,11 +1219,11 @@ fn render(frame: &mut Frame, state: &State) {
         let text = Text::from(lines);
         let width = text.width()  as u16;
         let height = (text.height() + 1) as u16;
-        let text_area = Rect::new(1, frame_area.bottom() - height, width, height);
+        let text_area = Rect::new(1, frame_area.bottom().saturating_sub(height), width, height);
         let title = Line::from("─Help");
         let block = Block::default().borders(Borders::TOP).title_top(title);
         let paragraph = Paragraph::new(text).block(block);
-        frame.render_widget(Clear, text_area);
+        clear_area(frame, text_area);
         frame.render_widget(paragraph, text_area);
     } else {
         let line = Line::from("[F1] - Show Help").dim();
@@ -1232,12 +1232,14 @@ fn render(frame: &mut Frame, state: &State) {
     }
 }
 
+fn clear_area(frame: &mut Frame, area: Rect) {
+    // TODO required in ratatui 0.30.0 because Clear render
+    // panics if its area is at least partially out of bounds
+    frame.render_widget(Clear, area.intersection(frame.area()));
+}
+
 fn get_center(parent_size: u16, child_size: u16) -> u16 {
-    if child_size > parent_size {
-        0
-    } else {
-        (parent_size - child_size).div_ceil(2)
-    }
+    parent_size.saturating_sub(child_size).div_ceil(2)
 }
 
 fn get_tab_name_x(tab_index: usize, tab_names: &Vec<Span>) -> u16 {
