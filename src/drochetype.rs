@@ -475,11 +475,11 @@ fn setup_logging() {
 
 fn app(terminal: &mut DefaultTerminal, mut state: State) {
     loop {
+        terminal.draw(|frame| render(frame, &state)).expect("failed to draw frame");
         update(&mut state);
         if state.exit {
             break
         }
-        terminal.draw(|frame| render(frame, &state)).expect("failed to draw frame");
     }
 }
 
