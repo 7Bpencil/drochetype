@@ -17,6 +17,10 @@ use ratatui::{
 const MAX_LINE_LENGTH: usize = 70;
 const INCLUDE_LETTER_UI_MATRIX_WIDTH: usize = 7;
 const SELECT_LETTERS_UI_MATRIX_WIDTH: usize = 7;
+const COLOR_CORRECT: Color = Color::Green;
+const COLOR_WRONG: Color = Color::Red;
+const COLOR_HIGHLIGHT: Color = Color::Yellow;
+const COLOR_HIGHLIGHT_2: Color = Color::Green;
 
 struct Tab<T: PartialEq + Copy> {
     value: T,
@@ -1288,7 +1292,7 @@ fn get_settings_options_text<'a, T: WithName + Copy + PartialEq>(options: &Tab<T
     for option in &options.range {
         let name = option.get_name(data);
         let style = if *option == options.value {
-            Style::default().fg(Color::Yellow)
+            Style::default().fg(COLOR_HIGHLIGHT)
         } else {
             Style::default()
         };
@@ -1313,7 +1317,7 @@ fn generate_include_letter_ui_matrix<'a>(include_letters: &Tab<IncludeLetter>) -
             };
 
             let letter_style = if letter_index == include_letter_index {
-                Style::default().fg(Color::Yellow)
+                Style::default().fg(COLOR_HIGHLIGHT)
             } else {
                 Style::default()
             };
@@ -1349,9 +1353,9 @@ fn generate_select_letters_ui_matrix<'a>(language_config: &NaturalLanguageConfig
                 let color = if !language_config.select_letters.contains(&letter) {
                     Color::Reset
                 } else if let Some(priority) = language_config.select_letters_priority && letter == priority {
-                    Color::Yellow
+                    COLOR_HIGHLIGHT
                 } else {
-                    Color::Green
+                    COLOR_HIGHLIGHT_2
                 };
                 (letter, color)
             } else {
@@ -1413,14 +1417,14 @@ fn get_char_span<'a>(char_index: usize, goal_chars: &[char], input_chars: &[char
     }
     if input_chars[char_index] == goal_chars[char_index] {
         let char = goal_chars[char_index];
-        let style = Style::default().fg(Color::Green);
+        let style = Style::default().fg(COLOR_CORRECT);
         return Span::styled(char.to_string(), style);
     } else {
         let mut char = input_chars[char_index];
         if char == ' ' {
             char = '_';
         }
-        let style = Style::default().fg(Color::Red);
+        let style = Style::default().fg(COLOR_WRONG);
         return Span::styled(char.to_string(), style);
     }
 }
