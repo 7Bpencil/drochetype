@@ -1182,10 +1182,10 @@ fn render(frame: &mut Frame, state: &State) {
         let wpm = cpm / 5.0;
         let wpm_string = wpm.floor().to_string();
         let result_line = Line::from(vec![
-            "acc: ".into(), accuracy_string.yellow(),
-            " wpm: ".into(), wpm_string.yellow(),
-            " cpm: ".into(), cpm_string.yellow(),
-            " time: ".into(), time_string.yellow(),
+            "acc: ".into(), accuracy_string.highlight(),
+            " wpm: ".into(), wpm_string.highlight(),
+            " cpm: ".into(), cpm_string.highlight(),
+            " time: ".into(), time_string.highlight(),
         ]);
         let result_line_area = Rect::new(text_area.x, text_area.bottom() + 1, result_line.width() as u16, 1);
         frame.render_widget(result_line, result_line_area);
@@ -1207,14 +1207,14 @@ fn render(frame: &mut Frame, state: &State) {
 
     if state.show_help {
         let lines = vec![
-            Line::from(vec!["[Space]".yellow(), " - Generate new test after completing last one".into()]),
-            Line::from(vec!["[ESC]".yellow(), " - Reset test, ".into(), "[ESC]".yellow(), " again to generate new test".into()]),
-            Line::from(vec!["[Backspace]".yellow(), " - Clear last letter".into()]),
-            Line::from(vec!["[Enter]".yellow(), " - Open and Close settings group".into()]),
-            Line::from(vec!["[Tab]".yellow(), ", ".into(), "[Shift-Tab]".yellow(), " - Switch settings group".into()]),
-            Line::from(vec!["[Up]".yellow(), ", ".into(), "[Down]".yellow(), ", ".into(), "[Left]".yellow(), ", ".into(), "[Right]".yellow(), " - Switch settings".into()]),
-            Line::from(vec!["[Ctrl-C]".yellow(), " - Exit".into()]),
-            Line::from(vec!["[F1]".yellow(), " - Hide Help".into()]),
+            Line::from(vec!["[Space]".highlight(), " - Generate new test after completing last one".into()]),
+            Line::from(vec!["[ESC]".highlight(), " - Reset test, ".into(), "[ESC]".highlight(), " again to generate new test".into()]),
+            Line::from(vec!["[Backspace]".highlight(), " - Clear last letter".into()]),
+            Line::from(vec!["[Enter]".highlight(), " - Open and Close settings group".into()]),
+            Line::from(vec!["[Tab]".highlight(), ", ".into(), "[Shift-Tab]".highlight(), " - Switch settings group".into()]),
+            Line::from(vec!["[Up]".highlight(), ", ".into(), "[Down]".highlight(), ", ".into(), "[Left]".highlight(), ", ".into(), "[Right]".highlight(), " - Switch settings".into()]),
+            Line::from(vec!["[Ctrl-C]".highlight(), " - Exit".into()]),
+            Line::from(vec!["[F1]".highlight(), " - Hide Help".into()]),
         ];
         let text = Text::from(lines);
         let width = text.width()  as u16;
@@ -1229,6 +1229,16 @@ fn render(frame: &mut Frame, state: &State) {
         let line = Line::from("[F1] - Show Help").dim();
         let area = Rect::new(1, frame_area.bottom() - 1, line.width() as u16, 1);
         frame.render_widget(line, area);
+    }
+}
+
+trait CustomStyling<'a, T> {
+    fn highlight(self) -> T;
+}
+
+impl<'a, T, U> CustomStyling<'a, T> for U where U: Stylize<'a, T> {
+    fn highlight(self) -> T {
+        self.fg(COLOR_HIGHLIGHT)
     }
 }
 
